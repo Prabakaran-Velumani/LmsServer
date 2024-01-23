@@ -28,11 +28,6 @@ const LmsReviewersGame = sequelize.define(
     }
     );
     LmsReviewersGame.belongsTo(LmsGameReviewers, { foreignKey: "reviewerId", targetKey: "gameReviewerId"});
-    LmsReviewersGame.belongsTo(LmsGame, { foreignKey: "gameId"});
+    LmsReviewersGame.belongsTo(LmsGame, { foreignKey: "gameId" });
 
-// sequelize.sync({alter: true, sync: true}).then(() => {
-//   console.log('lmsanimation table created successfully!');
-// }).catch((error) => {
-//   console.error('Unable to create table : ', error);
-// });
 module.exports = LmsReviewersGame;

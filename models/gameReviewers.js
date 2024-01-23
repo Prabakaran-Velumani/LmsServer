@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../lib/config/database");
 const LmsGame = require("./game");
 const LmsCreator = require("./Creator");
+const LmsGameReviews = require("./gameReviews");
 
 
 const LmsGameReviewers = sequelize.define(
@@ -13,11 +14,6 @@ const LmsGameReviewers = sequelize.define(
         autoIncrement: true,
         allowNull: false,
       },
-      // reviewerUuid: {
-      //   type: DataTypes.UUID,
-      //   allowNull: true,
-      // },
-      // Add other columns based on your model definition
       creatorId: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -79,7 +75,15 @@ const LmsGameReviewers = sequelize.define(
     }
     );
     
-    LmsGameReviewers.belongsTo(LmsCreator, { foreignKey: "creatorId"});
+    LmsGameReviewers.belongsTo(LmsCreator, { foreignKey: "creatorId", targetKey: "ctId", as: "ReviewingCreator"});
+    LmsGameReviewers.hasMany(LmsGameReviews, { foreignKey: "gameReviewerId", targetKey: "gameReviewerId", as: "reviews"});
+
+    // Define a scope with a where condition for the LmsGame model
+    // LmsGameReviewers.addScope("gameReviews", {
+    //   where: {
+    //       isActive: true, // Add your where condition here
+    //   },
+    // });
 // 
 
 module.exports = LmsGameReviewers;

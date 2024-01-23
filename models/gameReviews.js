@@ -79,7 +79,7 @@ const LmsGameReviews = sequelize.define(
         freezeTableName: true,
     }
     );
-    LmsGameReviews.belongsTo(LmsGameReviewers, { foreignKey: "gameReviewerId"});
+    // LmsGameReviews.belongsTo(LmsGameReviewers, { foreignKey: "gameReviewerId", targetKey:"gameReviewerId" });
     LmsGameReviews.belongsTo(LmsGame, { foreignKey: "reviewGameId"});
 
 
