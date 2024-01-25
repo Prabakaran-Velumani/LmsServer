@@ -62,7 +62,7 @@ const LmsBlocks = sequelize.define(
       allowNull: true,
     },
     blockText: {
-      type: DataTypes.STRING(250),
+      type: DataTypes.TEXT,
       allowNull: true,
     },
     blockNoOfOptions: {

@@ -1,9 +1,9 @@
 const LmsGame = require("../../models/game");
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op } = require('sequelize');
 const CompletionScreen = require("../../models/completionScreen");
 const ReflectionQuestion = require("../../models/reflectionQuestions");
-const gameassest = require("../../models/gameAsset");
-const gameHistory = require("../../models/gameviewhistory");
+const gameassest = require("../../models/gameAsset")
+const gameHistory=require("../../models/gameviewhistory");
 const LmsBlocks = require("../../models/blocks");
 const lmsQuestionOptions = require("../../models/questionOptions");
 const learners = require("../../models/learner");
@@ -57,6 +57,9 @@ cleanedBody.gameCreatedDatetime = Date.now();
     if (req.device) {
       cleanedBody.gameDeviceType = req.device.type;
     }
+   
+
+   
     const result = await LmsGame.create(cleanedBody);
     // return res.status(400).json({ status: "Failure", message: result });
 
@@ -104,8 +107,8 @@ const getGame = async (req, res) => {
               },
             },
           },
-          type !== 'All' ? { gameGameStage: type } : {},  // Corrected the condition here
-          data.gameCategoryId ? { gameCategoryId: { [Op.like]: `%${data.gameCategoryId}%` } } : {}  // Corrected the condition here
+          type !== 'All' ? { gameGameStage: type } : {},
+          data.gameCategoryId ? { gameCategoryId: { [Op.like]: `%${data.gameCategoryId}%` } } : {}
         ],
         [Op.or]: [
           {
@@ -113,18 +116,58 @@ const getGame = async (req, res) => {
           },
           {
             gameAnotherCreatorId: LoginUserId
-
           },
-
         ],
-     
       },
       group: ['gameExtensionId'],
       order: [['gameId', 'DESC']],
       logging: console.log // Log the generated SQL query
     });
 
-
+    const modifiedData = await Promise.all(allData.map(async game => {
+      let skillNames = null;
+      let catNames = null;
+    
+      if (game.gameSkills) {
+        const skillArray = game.gameSkills.split(',').map(Number);
+    
+        const getSkills = await Skill.findAll({
+          attributes: [
+            ['crSkillName', 'skillName']
+          ],
+          where: {
+            crSkillId: {
+              [Op.in]: skillArray,
+            },
+          },
+        });
+    
+        skillNames = getSkills.map(skill => skill.dataValues.skillName);
+      }
+    
+      if (game.gameCategoryId) { // <-- Check if gameCategoryId is defined on the game object
+        const getCatgory = await Catgory.findAll({
+          attributes: [
+            ['catName', 'catgoryName']
+          ],
+          where: {
+            catId: game.gameCategoryId, // <-- Access gameCategoryId from the game object
+          },
+        });
+    
+        catNames = getCatgory.map(cat => cat.dataValues.catgoryName);
+      }
+    
+      const modifiedGame = {
+        ...game.toJSON(),
+        gameSkills: game.gameSkills ? skillNames : null,
+        gameCategoryId: game.gameCategoryId ? catNames : null,
+        // Add other modifications as needed
+      };
+    
+      return modifiedGame;
+    }));
+    
 
     if (count === 0) {
       return res.status(404).json({ status: 'Failure', message: "No records found" });
@@ -133,7 +176,7 @@ const getGame = async (req, res) => {
     res.status(200).json({
       status: 'Success',
       message: "All Data Retrieved Successfully",
-      data: allData,
+      data: modifiedData, // Use modifiedData instead of allData
       count: count,
     });
   } catch (error) {
@@ -184,41 +227,50 @@ const getGameTemplate = async (req, res) => {
       order: [['gameId', 'DESC']],
     });
     
-    // const { count, rows: allData } = await LmsGame.findAndCountAll({
-    //   include: [
-    //     {
-    //       model: gameassest,
-    //       as: 'image',
-    //       attributes: [
-    //         [Sequelize.literal(`CONCAT('${req.protocol}://${req.get('host')}/', gasAssetImage)`), 'gasAssetImage']
-    //       ],
-    //       required: false,
-    //     },
-    //   ],
-    //   attributes: [
-    //     'gameExtensionId', // Include the column you are grouping by
-    //     // ... (other columns you need)
-    //     [Sequelize.literal('(SELECT COUNT(*) FROM lmsgameviewhistory WHERE gvgameId = lmsgame.gameId)'), 'gameview'],
-    //     [Sequelize.literal('(SELECT MAX(gameId) FROM lmsgame WHERE gameExtensionId = lmsgame.gameExtensionId)'), 'maxGameId'], // Example of aggregation, you can adjust it as per your needs
-    //   ],
-    //   where: {
-    //     [Op.and]: [
-    //       {
-    //         gameDeleteStatus: {
-    //           [Op.or]: {
-    //             [Op.not]: 'Yes',
-    //             [Op.is]: null,
-    //           },
-    //         },
-    //       },
-    //       { gameGameStage: 'Launched' },
-    //       // Assuming data is defined or replace it with the correct variable
-    //       data && data.gameCategoryId ? { gameCategoryId: { [Op.like]: `%${data.gameCategoryId}%` } } : {},
-    //     ],
-    //   },
-    //   group: ['gameExtensionId'], // Specify the column to group by
-    //   order: [['gameExtensionId', 'DESC']],
-    // });
+    const modifiedData = await Promise.all(allData.map(async game => {
+      let skillNames = null;
+      let catNames = null;
+    
+      if (game.gameSkills) {
+        const skillArray = game.gameSkills.split(',').map(Number);
+    
+        const getSkills = await Skill.findAll({
+          attributes: [
+            ['crSkillName', 'skillName']
+          ],
+          where: {
+            crSkillId: {
+              [Op.in]: skillArray,
+            },
+          },
+        });
+    
+        skillNames = getSkills.map(skill => skill.dataValues.skillName);
+      }
+    
+      if (game.gameCategoryId) { // <-- Check if gameCategoryId is defined on the game object
+        const getCatgory = await Catgory.findAll({
+          attributes: [
+            ['catName', 'catgoryName']
+          ],
+          where: {
+            catId: game.gameCategoryId, // <-- Access gameCategoryId from the game object
+          },
+        });
+    
+        catNames = getCatgory.map(cat => cat.dataValues.catgoryName);
+      }
+    
+      const modifiedGame = {
+        ...game.toJSON(),
+        gameSkills: game.gameSkills ? skillNames : null,
+        gameCategoryId: game.gameCategoryId ? catNames : null,
+        // Add other modifications as needed
+      };
+    
+      return modifiedGame;
+    }));
+    
 
 
 
@@ -229,7 +281,7 @@ const getGameTemplate = async (req, res) => {
     res.status(200).json({
       status: 'Success',
       message: "All Data Retrieved Successfully",
-      data: allData,
+      data: modifiedData,
       count: count,
     });
   } catch (error) {
@@ -258,6 +310,7 @@ const updateGame = async (req, res) => {
         try {
           // Try to parse the existing value as JSON
           updatedArray = JSON.parse(findlasttab.gameLastTabArray);
+          
           // If successful, check if the value is already in the array
           if (!updatedArray.includes(data.gameLastTab)) {
             // If not inside, push the value into the array
@@ -320,8 +373,9 @@ const updateGame = async (req, res) => {
           }
         })
       );
-      data.gameSkills = updatedSkills.join(",");
-
+      data.gameSkills = updatedSkills.join(',');
+      
+      
       // Update data.gameSkills with the new skill IDs
       // data.gameSkills = updatedSkills;
 
@@ -357,6 +411,7 @@ const updateGame = async (req, res) => {
     //     })
     //   );
     //   data.gameCategoryId = updatedCategory.join(',');
+      
     //   data.gameDuplicated='NO';
     //   // Update data.gameSkills with the new skill IDs
     //   // data.gameSkills = updatedSkills;
@@ -366,40 +421,43 @@ const updateGame = async (req, res) => {
     // }
     const checkextentsion = await LmsGame.findOne({where: {gameId: id}});
     // res.status(200).send(checkextentsion);
+   
     if(checkextentsion.gameExtensionId){
       data.gameExtensionId=checkextentsion.gameExtensionId;
       
     }else{
       data.gameExtensionId=id;
     }
-    
-    const { gameQuestNo, ...updateData } = data; 
-    const record = await LmsGame.update(updateData, {
-      where: {
-        gameId: id
+   
+      const { gameQuestNo, ...updateData } = data; 
+      const record = await LmsGame.update(updateData, {
+        where: {
+          gameId: id
+        }
+      });  
+  
+      let updateableData= {
+        "gameBackgroundId" : data.gameBackgroundId,
+        "gameNonPlayingCharacterId" : data.gameNonPlayingCharacterId,
+        "gameNonPlayerName": data.gameNonPlayerName,
+        "gameNonPlayerVoice": data.gameNonPlayerVoice,
+        "gamePlayerMaleVoice": data.gamePlayerMaleVoice,
+        "gamePlayerFemaleVoice": data.gamePlayerFemaleVoice,
+        "gameNarratorVoice": data.gameNarratorVoice,
+        "gameTitle": data.gameTitle,
+        "gameStoryLine": data.gameStoryLine,
+        "gameLearningOutcome": data.gameLearningOutcome,
+        "gameCategoryId": data.gameCategoryId,
+        "gameAuthorName": data.gameAuthorName,
+        "gameSkills": data.gameSkills,
       }
-    });  
-
-    let updateableData= {
-      "gameBackgroundId" : data.gameBackgroundId,
-      "gameNonPlayingCharacterId" : data.gameNonPlayingCharacterId,
-      "gameNonPlayerName": data.gameNonPlayerName,
-      "gameNonPlayerVoice": data.gameNonPlayerVoice,
-      "gamePlayerMaleVoice": data.gamePlayerMaleVoice,
-      "gamePlayerFemaleVoice": data.gamePlayerFemaleVoice,
-      "gameNarratorVoice": data.gameNarratorVoice,
-      "gameTitle": data.gameTitle,
-      "gameStoryLine": data.gameStoryLine,
-      "gameLearningOutcome": data.gameLearningOutcome,
-      "gameCategoryId": data.gameCategoryId,
-      "gameAuthorName": data.gameAuthorName,
-      "gameSkills": data.gameSkills,
-    }
-
-   const saved= await LmsGame.update(updateableData, {where : {gameExtensionId: data.gameExtensionId}});
-if(data.gameGameStage==='Review'){
-  const saved= await LmsGame.update({'gameGameStage':data.gameGameStage}, {where : {gameExtensionId: data.gameExtensionId}}); 
-}
+  
+     const saved= await LmsGame.update(updateableData, {where : {gameExtensionId: data.gameExtensionId}});
+  if(data.gameGameStage==='Review'){
+    const saved= await LmsGame.update({'gameGameStage':data.gameGameStage}, {where : {gameExtensionId: data.gameExtensionId}}); 
+  }
+    
+  
 
 //Newly added code
     // data.gameExtensionId=id;
@@ -456,7 +514,8 @@ const getBlocks = async (req, res) => {
         },
       },
     });
-
+console.log("(((((((((((((((((((((((((((((((((((");
+console.log(count);
 
     if (count === 0) {
       return res.status(404).json({ status: 'Failure', message: "No records found" });
@@ -1565,7 +1624,12 @@ blockNotIn = notInData.map((NOT) => NOT.blockId);
  
 
 if(Exitist){
-
+  const deleteOption = await lmsQuestionOptions.destroy({
+    where: {
+      qpQuestionId: Exitist.blockId
+    }
+  });
+  console.log('deleteOption',deleteOption)
   const result = await LmsBlocks.update(
     {
       blockGameId: id,
@@ -1642,6 +1706,15 @@ if(Exitist){
 
  if(item.type=='Dialog'){
   if(Exitist){
+
+    const deleteOption = await lmsQuestionOptions.destroy({
+      where: {
+        qpQuestionId: Exitist.blockId
+      }
+    });
+    console.log('deleteOption',deleteOption)
+  
+    
     const result = await LmsBlocks.update(
       {
       blockGameId:id ,
@@ -2581,8 +2654,8 @@ return res.status(200).json({
       ...gameToClone.get(), // Using spread syntax to copy all fields
      gameId: null, // Set id to null to create a new record
         // Modify specific fields here
-        gameLastTabArray:JSON.stringify([integerValue]),
-        gameLastTab:2,
+        // gameLastTabArray:JSON.stringify([integerValue]),
+        gameLastTab:111,
         gameGameStage: 'Creation',
         gameExtensionId:null,
         gameDuplicated:'NO',
@@ -3243,7 +3316,7 @@ return res.status(200).json({
           if (!option.qpOptionText) {
             return res.status(400).json({
               status: "Failure",
-              message: `Plese Fill the Incomplete Fields of Quest  ${option.qpSequence}`,
+              message: `Plese Fill the Incomplete Fields op of Quest  ${option.qpSequence}`,
             });
 
           }
@@ -3251,7 +3324,7 @@ return res.status(200).json({
 
             return res.status(400).json({
               status: "Failure",
-              message: `Plese Fill the Incomplete Fields of Quest ${option.qpQuestNo}`,
+              message: `Plese Fill the Incomplete Fields inpu of Quest ${option.qpOptionId}`,
             });
 
           }
