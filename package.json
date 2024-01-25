@@ -26,6 +26,7 @@
     "mysql2": "^3.6.3",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
+    "openai": "^4.24.4",
     "sequelize": "^6.34.0",
     "uuid": "^9.0.1"
   },
