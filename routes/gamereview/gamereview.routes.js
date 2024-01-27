@@ -1,5 +1,5 @@
 const express = require('express');
-const {addGameReview, addGameReviewers,getGameBlockReview, updateGameBlockReview,deleteGameBlockReview, getGameBlockReviewList, getGameAllReviews,getGameReviewById} = require('../../controllers/gamereview/gamereview.controller');
+const {addGameReview, addGameReviewers,getGameBlockReview, updateGameBlockReview,deleteGameBlockReview, getGameBlockReviewList, getGameAllReviews,getGameReviewById, getGameReviewList} = require('../../controllers/gamereview/gamereview.controller');
 // const { uploadSettings, fileFilters, storageLocations } = require('../../config/storageConfig');
 const router = express.Router();
 
@@ -15,5 +15,6 @@ router.delete('/blockreview/:id',deleteGameBlockReview);//doing soft delete only
 
 //Creator's Route
 router.post('/getblockreviewlist',getGameBlockReviewList);// get All reviews for a  gameId and current Block/Screen/Field
+router.get('/getblockreviewlist/:gameId',getGameReviewList);// get All reviews for a  gameId
 
 module.exports = router;

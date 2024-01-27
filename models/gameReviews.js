@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../lib/config/database");
-const LmsGameReviewers = require("./gameReviewers");
+const GameReviewers = require("./gameReviewers");
 const LmsBlocks = require("./blocks");
 const LmsGame = require("./game");
 
@@ -79,8 +79,7 @@ const LmsGameReviews = sequelize.define(
         freezeTableName: true,
     }
     );
-    // LmsGameReviews.belongsTo(LmsGameReviewers, { foreignKey: "gameReviewerId", targetKey:"gameReviewerId" });
     LmsGameReviews.belongsTo(LmsGame, { foreignKey: "reviewGameId"});
-
+    // LmsGameReviews.belongsTo(GameReviewers, { foreignKey: "gameReviewerId" });
 
 module.exports = LmsGameReviews;

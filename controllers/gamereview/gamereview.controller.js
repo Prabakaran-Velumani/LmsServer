@@ -7,6 +7,7 @@ const ReviewersGame = require("../../models/reviewersGame");
 const Creators = require("../../models/Creator");
 const {validateEmail} = require("../../common/common")
 const { v4: uuidv4 } = require("uuid");
+// const LmsGameReviewers = require("../../models/gameReviewers");
 
 
 
@@ -574,4 +575,84 @@ catch(error){
   });
 }
 }
-module.exports = { addGameReview, addGameReviewers, getGameBlockReview,updateGameBlockReview,deleteGameBlockReview,getGameBlockReviewList, getGameAllReviews,getGameReviewById};
+
+const getGameReviewList =async (req, res)=>{
+  try{
+    const gameId = req?.params?.gameId;
+    if(gameId)
+    {
+    const tabReviewSets =[];
+    let reviewerIdArray =[];
+    for(let i=1; i<=5; i++)
+    {
+      let reviewlist = await GameReviews.findAll({where : {reviewGameId: {[Op.eq]: gameId}, tabId:{[Op.eq]: i}}, attributes:{exclude: ['reviewIpAddress', 'reviewIpAddress', 'reviewDeviceType', 'deletedAt', 'reviewUserAgent']},  
+      // include: [
+      //   {
+      //     model: GameReviewers,
+      //     attributes: ['gameReviewerId', 'creatorId', 'emailId', 'activeStatus'],
+      //     // include: [
+      //     //   {
+      //     //     model: Creators,
+      //     //     attributes: ['ctName'], // Add the attributes you want to include from the Creator model
+      //     //     required: false,
+      //     //   },
+      //     // ],
+      //     // where: {
+      //     //   gameReviewerId: Sequelize.col('lmsgamereviewers.gameReviewerId'),
+      //     // },
+
+      //   },
+      // ],
+    });
+   
+      tabReviewSets[i] = reviewlist;
+      Object.values(reviewlist).forEach((item)=>{
+        reviewerIdArray.push(item.gameReviewerId);
+      })
+
+    }
+    const uniqueReviewerIdArray = [...new Set(reviewerIdArray)];
+    
+    /**get the reviewers details */
+    const reviewerdetailPromiseAll = uniqueReviewerIdArray.map(async (item)=>{
+      let result = await GameReviewers.findByPk(item,
+       { attributes: ['gameReviewerId', 'creatorId', 'emailId', 'activeStatus'],
+        include: [{
+          model: Creators,
+          attributes: ['ctId', 'ctName','ctMail'],
+          as: "ReviewingCreator"
+        }]}
+        );
+      return result;
+    })
+    const reviewerdetail= await Promise.all(reviewerdetailPromiseAll);
+
+
+    return res
+    .status(200)
+    .json({
+      status: "Success",
+      message: "Record Found",
+      reviewlist:  tabReviewSets,
+      reviewerDetails: reviewerdetail,
+    });
+  }
+  return res
+  .status(400)
+  .json({
+    status: "Failure",
+    message: "Invalid request",
+  });
+  }
+  catch(error){
+    res
+    .status(500)
+    .json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
+  }
+}
+
+module.exports = { addGameReview, addGameReviewers, getGameBlockReview,updateGameBlockReview,deleteGameBlockReview,getGameBlockReviewList, getGameAllReviews,getGameReviewById, getGameReviewList};

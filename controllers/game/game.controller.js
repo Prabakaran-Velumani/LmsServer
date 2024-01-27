@@ -69,7 +69,7 @@ cleanedBody.gameCreatedDatetime = Date.now();
       data: result,
     });
   } catch (err) {
-    console.error("Error in addgame:", err.message);
+ // console.error("Error in addgame:", err.message);
 
     return res.status(500).json({
       status: "Failure",
@@ -291,7 +291,7 @@ const getGameTemplate = async (req, res) => {
 const updateGame = async (req, res) => {
   try {
     const data = req?.body;
-    console.log(data);
+ // console.log(data);
     const id = req?.params?.id;
     if(data.gameLastTab) {
       data.gameLastTab = JSON.stringify(data.gameLastTab);
@@ -320,19 +320,19 @@ const updateGame = async (req, res) => {
         data.gameLastTabArray=findlasttab.gameLastTabArray;
           } else {
             data.gameLastTabArray=findlasttab.gameLastTabArray
-            console.log(`Value ${data.gameLastTab} is already inside gameLastTabArray`);
+         // console.log(`Value ${data.gameLastTab} is already inside gameLastTabArray`);
           }
         } catch (error) {
           // If parsing fails, handle it accordingly
-          console.error('Error parsing gameLastTabArray:', error);
+       // console.error('Error parsing gameLastTabArray:', error);
         }
 
         // Save the updated array back to the database
         
         
-        console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
+     // console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
       } else {
-        console.log('gameLastTabArray not found or is null');
+     // console.log('gameLastTabArray not found or is null');
        
       }
       // Other logic...
@@ -678,7 +678,7 @@ let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
         }
       }
     );
-    console.log('setExtenstion',setExtenstion[0]);
+ // console.log('setExtenstion',setExtenstion[0]);
 console.log('clonedGame.gameId',gameup,index);
   
   
@@ -877,7 +877,7 @@ let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
         }
       }
     );
-    console.log('setExtenstion',setExtenstion[0]);
+ // console.log('setExtenstion',setExtenstion[0]);
 console.log('clonedGame.gameId',gameup,index);
   
   
@@ -1053,7 +1053,7 @@ const textToSpeech = async (req, res) => {
   // const tts = new gtts(text, lang);
   // tts.save('output.mp3', (err, result) => {
   //   if (err) {
-  //     console.error(err);
+  //  // console.error(err);
   //     res.status(500).send('Internal Server Error');
   //   } else {
   //     res.sendFile(__dirname + '/output.mp3');
@@ -1712,7 +1712,7 @@ if(Exitist){
         qpQuestionId: Exitist.blockId
       }
     });
-    console.log('deleteOption',deleteOption)
+ // console.log('deleteOption',deleteOption)
   
     
     const result = await LmsBlocks.update(
@@ -2013,7 +2013,7 @@ console.log('OptionExitist:', OptionExitist);
  }
  } catch (error) {
    // Handle the error within the loop
-   console.error('Error within loop:', error.message);
+// console.error('Error within loop:', error.message);
  
    // Return an appropriate response or handle the error as needed
    return res.status(500).json({ status: 'Failure', error: error.message });
@@ -2183,7 +2183,7 @@ console.log('OptionExitist:', OptionExitist);
 
      } catch (error) {
        // Handle the error within the loop
-       console.error('Error within loop:', error.message);
+    // console.error('Error within loop:', error.message);
      
        // Return an appropriate response or handle the error as needed
        return res.status(500).json({ status: 'Failure', error: error.message });
@@ -2210,7 +2210,7 @@ console.log('OptionExitist:', OptionExitist);
 
     return res.status(200).json({ status: 'Success', setArray });
   } catch (error) {
-    console.error(error);
+ // console.error(error);
     return res.status(500).json({ status: 'Failure', error: error.message });
   }
 };
@@ -2322,7 +2322,7 @@ if (result.blockChoosen === 'Interaction') {
      * 
      */
   
-    console.log('rows',rows );
+ // console.log('rows',rows );
     optionsObject[rows.qpOptions]=rows.qpOptionText ? rows.qpOptionText:'';
     ansObject[rows.qpOptions]=rows.qpTag ? rows.qpTag:'';
 
@@ -2340,7 +2340,7 @@ if (result.blockChoosen === 'Interaction') {
     navigateshowObjects[rows.qpOptions]=rows.qpNavigateShow ? rows.qpNavigateShow:'';
    
     alpabetObjectsArray.push(value);
-    console.log('After push:', alpabetObjectsArray);
+ // console.log('After push:', alpabetObjectsArray);
     if(rows.qpResponse){
       interactionBlockObject[`Resp${result.blockSecondaryId}`]=result.blockSecondaryId;
     }
@@ -2382,7 +2382,7 @@ if (result.blockChoosen === 'Interaction') {
     status:'yes',
   };
   
-    console.log('values',value)
+ // console.log('values',value)
     resultObject[key] = value;
   
 
@@ -2684,7 +2684,7 @@ return res.status(200).json({
           }
         }
       );
-      console.log('setExtenstion',setExtenstion[0]);
+   // console.log('setExtenstion',setExtenstion[0]);
   console.log('clonedGame.gameId',gameup,index);
     
     
@@ -2793,13 +2793,14 @@ return res.status(200).json({
   }
 
   const GetPreview = async (req, res) => {
-    try {
+    // try {
       let id = req.params.id;
   
       let stroy = await LmsBlocks.findAndCountAll({
         where: { blockGameId: id, blockDeleteStatus: "NO" },
         order: [["blockPrimarySequence", "ASC"]], // Use 'DESC' for descending order
       });
+     
       let resultObject = {};
       let itemObject = {};
       let alpabetObject = {};
@@ -2825,6 +2826,7 @@ return res.status(200).json({
         order: [["qpOptionId", "DESC"]],
         limit: 1,
       });
+      
       let j = 0;
       let idCounter = 1;
       let upNextCounter = 2;
@@ -2858,14 +2860,16 @@ return res.status(200).json({
         }
   
         if (result.blockChoosen === "Interaction") {
-          try {
+          // try {
             const Question = await lmsQuestionOptions.findAll({
               where: { qpQuestionId: result.blockId, qpDeleteStatus: "NO" },
               order: [["qpSecondaryId", "ASC"]],
             });
             //  return res.status(500).json({ status: 'Failure' ,error:Question ,er:result.blockId});
-            console.log("Question", Question);
-            // return res.status(500).json({ status: 'Failure' ,error:result.blockId });
+            // console.log("Question", Question);
+            // return res.status(500).json({ status: 'Failure' ,error:Question});
+            
+            
             for (let [i, rows] of Question.entries()) {
               // Use for...of loop or Promise.all to handle async/await correctly
               let value = {
@@ -2873,6 +2877,10 @@ return res.status(200).json({
                 option: rows.qpOptions,
                 secondaryId: rows.qpSecondaryId,
               };
+              // Ensure optionsObject[key] is initialized as an object
+              if (!optionsObject[key]) {
+                optionsObject[key] = {};
+              }
               optionsObject[key][rows.qpOptions] = rows.qpOptionText
                 ? rows.qpOptionText
                 : "";
@@ -2905,7 +2913,7 @@ return res.status(200).json({
   
               alpabetObjectsArray.push(value);
             }
-            console.log("Final array:", alpabetObjectsArray);
+            // console.log("Final array:", alpabetObjectsArray);
             if (responseObject.length !== 0) {
               interactionBlockObject[`Resp${result.blockSecondaryId}`] =
                 result.blockSecondaryId;
@@ -2945,11 +2953,11 @@ return res.status(200).json({
               status: "yes",
             };
             resultObject[key] = value;
-          } catch (error) {
-            return res
-              .status(500)
-              .json({ status: "Failure", error: error.message });
-          }
+          // } catch (error) {
+          //   return res
+          //     .status(500)
+          //     .json({ status: "Failure", error: error.message });
+          // }
         }
   
         let items = {
@@ -3040,9 +3048,9 @@ return res.status(200).json({
           data:data,
         });
       }
-    } catch (error) {
-      return res.status(500).json({ status: "Failure", error: error.message });
-    }
+    // } catch (error) {
+    //   return res.status(500).json({ status: "Failure", error: error.message });
+    // }
   }
 
 
@@ -3087,7 +3095,7 @@ return res.status(200).json({
 
     try{
       const data = req?.body;
-      console.log(data);
+   // console.log(data);
       const id = req?.params?.id;
   
       BlcokList = await LmsBlocks.findAll({
@@ -3357,7 +3365,7 @@ return res.status(200).json({
         data: gameData,
       });
     } catch (error) {
-      console.error("Error:", error);
+   // console.error("Error:", error);
       res.status(500).json({
         error: "Internal Server Error",
         message:
@@ -3437,7 +3445,7 @@ return res.status(200).json({
         totalMinutes,
       });
     } catch (error) {
-      console.error("Error:", error);
+   // console.error("Error:", error);
       res.status(500).json({
         error: "Internal Server Error",
         message:
@@ -3481,7 +3489,7 @@ return res.status(200).json({
       res.status(200).json({ status: 'Success', message: 'Data updated successfully.' });
     } catch (error) {
       // Handle any errors that may occur during the update
-      console.error('Error during update:', error);
+   // console.error('Error during update:', error);
       res.status(500).json({ status: 'Failure', message: 'Internal Server Error', error: error.message });
     }
   };
