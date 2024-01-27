@@ -80,6 +80,5 @@ const LmsGameReviews = sequelize.define(
     }
     );
     LmsGameReviews.belongsTo(LmsGame, { foreignKey: "reviewGameId"});
-    // LmsGameReviews.belongsTo(GameReviewers, { foreignKey: "gameReviewerId" });
 
 module.exports = LmsGameReviews;

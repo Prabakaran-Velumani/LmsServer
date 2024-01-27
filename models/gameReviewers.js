@@ -76,23 +76,6 @@ const LmsGameReviewers = sequelize.define(
     );
     
     LmsGameReviewers.belongsTo(LmsCreator, { foreignKey: "creatorId", targetKey: "ctId", as: "ReviewingCreator"});
-    // LmsGameReviewers.hasMany(LmsGameReviews, { foreignKey: "gameReviewerId", targetKey: "gameReviewerId"});
-    // LmsGameReviewers.belongsTo(LmsGameReviews,{foreignKey: "gameReviewerId" ,targetKey: "gameReviewerId"});
-
-
-  // Define a scope for active reviewers with optional creator details
-// LmsGameReviewers.addScope("activeReviewersWithOptionalCreator", {
-//   include: [
-//     {
-//       model: Creators,
-//       attributes: ['ctName'],
-//       required: false, // Make the inclusion optional
-//     },
-//   ],
-//   attributes: ['emailId', 'gameReviewerId', 'creatorId', 'activeStatus'], // Include emailId in attributes
-//   where: {
-//     gameReviewerId: Sequelize.col('lmsgamereviewers.gameReviewerId'),
-//   },
-// });
-
+    LmsGameReviewers.hasMany(LmsGameReviews, { foreignKey: "gameReviewerId", targetKey: "gameReviewerId", as:"reviews"});
+    
 module.exports = LmsGameReviewers;
