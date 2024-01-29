@@ -5,11 +5,14 @@ const GameReviewers = require("../../models/gameReviewers");
 const GameReviews = require("../../models/gameReviews");
 const ReviewersGame = require("../../models/reviewersGame");
 const Creators = require("../../models/Creator");
-const {validateEmail} = require("../../common/common")
+const { validateEmail } = require("../../common/common");
 const { v4: uuidv4 } = require("uuid");
 // const LmsGameReviewers = require("../../models/gameReviewers");
 
-
+const handlebars = require("handlebars");
+const fs = require("fs");
+const transporter = require("../../lib/mails/mailService");
+const { sendMail } = require("../../lib/mails/mailFunctions");
 
 /**
  * addGameReviewers()
@@ -19,12 +22,10 @@ const { v4: uuidv4 } = require("uuid");
 *"activeStatus": "YES",
 *"gameId" : 1
 }
-}
- * @param {*} res 
- * @returns 
- */
+*/
+
 const addGameReviewers = async (req, res) => {
-  // try{
+  try{
   if (!req.body) {
     return res
       .status(400)
@@ -34,17 +35,8 @@ const addGameReviewers = async (req, res) => {
     //default values
     const reqData = req.body.data;
 
-    /****loop it to insert for each items in an array of creatorIds[] and emailIds[] 
-     const InsertReviewerData = {
-       creatorIds: [2, 3, 4],
-       emailIds: ["rama@gamail.com", "testyht@gmail.com"],
-       activeStatus: "YES",
-       gameId: 1,
-      };
-      *****/
-
     const result = [];
-//if it has creator Ids,
+    //if it has creator Ids,
     for (const cId of reqData?.creatorIds || []) {
       //to check the existence of an creator as a reviewer in gameReviewer Table, if exists then the gameId if current request and existing reviewGameId in gameReview
 
@@ -52,33 +44,44 @@ const addGameReviewers = async (req, res) => {
         attributes: ["gameReviewerId"],
         where: { creatorId: { [Op.eq]: cId } },
       });
-      const creatorEmailId = await Creators.findOne({where: {ctId: {[Op.eq]: cId}, ctDeleteStatus: {[Op.eq]: "NO"}, ctStatus: {[Op.eq]: "Active"}}, attributes:["ctMail"]});
+      const creatorEmailId = await Creators.findOne({
+        where: {
+          ctId: { [Op.eq]: cId },
+          ctDeleteStatus: { [Op.eq]: "NO" },
+          ctStatus: { [Op.eq]: "Active" },
+        },
+        attributes: ["ctMail"],
+      });
 
       /** creatorEmailId is null if creator is not active or deleted */
-      if(!creatorEmailId){
+      if (!creatorEmailId) {
         result.push({
           creatorId: cId,
           emailId: null,
           ReviewerId: null,
           gameReviewId: null,
           message: "This Creator Not had Email address or not In Active",
+          gameUuid: null,
         });
         continue;
       }
       //Is the Creator already exist in reviewer table.
       if (getReviewerIdCreator?.gameReviewerId) {
-        
-      const getReviewersGame = await ReviewersGame.findOne({where: {gameId : {[Op.eq]: reqData.gameId}, reviewerId: {[Op.eq]: getReviewerIdCreator?.gameReviewerId}}})
-      const insertData = {
-        gameUuid: uuidv4(),
-        gameId: reqData.gameId,
-        reviewerId: getReviewerIdCreator?.gameReviewerId
-      }
-      if(!getReviewersGame)
-      {
-        const insertReviewersGames = await ReviewersGame.create(insertData); 
-      }
+        const getReviewersGame = await ReviewersGame.findOne({
+          where: {
+            gameId: { [Op.eq]: reqData.gameId },
+            reviewerId: { [Op.eq]: getReviewerIdCreator?.gameReviewerId },
+          },
+        });
+        const insertData = {
+          gameUuid: uuidv4(),
+          gameId: reqData.gameId,
+          reviewerId: getReviewerIdCreator?.gameReviewerId,
+        };
 
+        if (!getReviewersGame) {
+          const insertReviewersGames = await ReviewersGame.create(insertData);
+        }
 
         const reviewerGameId = await GameReviews.findOne({
           where: {
@@ -86,15 +89,17 @@ const addGameReviewers = async (req, res) => {
             reviewGameId: { [Op.eq]: reqData.gameId },
           },
         });
+
         //Is the Creator already exist then already a reviewer for the game.
         if (reviewerGameId) {
+          getReviewersGame.update({ mailStatus: "queued" });
           result.push({
             creatorId: cId,
             emailId: creatorEmailId?.ctMail,
             ReviewerId: getReviewerIdCreator?.gameReviewerId,
             gameReviewId: reviewerGameId.reviewId,
             message: "Creator Already a Reviewer for this Game",
-            gameUuid: getReviewersGame.gameUuid
+            gameUuid: getReviewersGame.gameUuid,
           });
           continue;
         } else {
@@ -109,7 +114,7 @@ const addGameReviewers = async (req, res) => {
             ReviewerId: getReviewerIdCreator.gameReviewerId,
             gameReviewId: gameReview.reviewId,
             message: "Creator is already a Reviewer, So Added for this Game",
-            gameUuid: insertData.gameUuid
+            gameUuid: insertData.gameUuid,
           });
           continue;
         }
@@ -137,10 +142,11 @@ const addGameReviewers = async (req, res) => {
         const NewInsertreviewerData = {
           gameUuid: uuidv4(),
           gameId: reqData.gameId,
-          reviewerId: gameReviewer?.gameReviewerId
-        }
-        const NewInsertReviewersGames = await ReviewersGame.create(NewInsertreviewerData); 
-
+          reviewerId: gameReviewer?.gameReviewerId,
+        };
+        const NewInsertReviewersGames = await ReviewersGame.create(
+          NewInsertreviewerData
+        );
 
         const gameReview = await GameReviews.create(insertrReviewData);
         result.push({
@@ -149,24 +155,24 @@ const addGameReviewers = async (req, res) => {
           ReviewerId: gameReviewer.gameReviewerId,
           gameReviewId: gameReview.reviewId,
           message: "Creator is added as Reviewer for this Game",
-          gameUuid: NewInsertreviewerData.gameUuid
+          gameUuid: NewInsertreviewerData.gameUuid,
         });
       }
     }
 
     //For Emailids
     for (const eId of reqData?.emailIds || []) {
-    /** Validate Email Id */
-    if(!validateEmail(eId)){
-      result.push({
-        emailId: eId,
-        ReviewerId: null,
-        gameReviewId: null,
-        message: "Invalid Email Id",
-        gameUuid: null
-      });
-      continue;
-    }
+      /** Validate Email Id */
+      if (!validateEmail(eId)) {
+        result.push({
+          emailId: eId,
+          ReviewerId: null,
+          gameReviewId: null,
+          message: "Invalid Email Id",
+          gameUuid: null,
+        });
+        continue;
+      }
 
       const getReviewerIdEmail = await GameReviewers.findOne({
         attributes: ["gameReviewerId"],
@@ -181,11 +187,19 @@ const addGameReviewers = async (req, res) => {
           },
         });
         if (reviewerGameIdEmail) {
+          const getUuidForEmail = await ReviewersGame.findOne({
+            where: {
+              reviewerId: { [Op.eq]: getReviewerIdEmail?.gameReviewerId },
+              gameId: { [Op.eq]: reqData.gameId },
+            },
+          });
+
           result.push({
             emailId: eId,
             ReviewerId: getReviewerIdEmail?.gameReviewerId,
             gameReviewId: reviewerGameIdEmail.reviewId,
             message: "Email Id Already a Reviewer for this Game",
+            gameUuid: getUuidForEmail?.gameUuid,
           });
           continue;
         } else {
@@ -198,19 +212,22 @@ const addGameReviewers = async (req, res) => {
           const InsertreviewerEmailIdData = {
             gameUuid: uuidv4(),
             gameId: reqData.gameId,
-            reviewerId: getReviewerIdEmail?.gameReviewerId
-          }
-          const InsertReviewersGamesEmail = await ReviewersGame.create(InsertreviewerEmailIdData); 
+            reviewerId: getReviewerIdEmail?.gameReviewerId,
+          };
+          const InsertReviewersGamesEmail = await ReviewersGame.create(
+            InsertreviewerEmailIdData
+          );
           result.push({
             emailId: eId,
             ReviewerId: getReviewerIdEmail.gameReviewerId,
             gameReviewId: gameReview.reviewId,
             message: "Email ID is already a Reviewer ,So Added for this Game",
-            gameUuid: InsertreviewerEmailIdData.gameUuid
+            gameUuid: InsertreviewerEmailIdData.gameUuid,
           });
           continue;
         }
       }
+      
       const insertReviewerData = {
         emailId: eId,
         activeStatus: reqData.activeStatus || "YES",
@@ -218,7 +235,7 @@ const addGameReviewers = async (req, res) => {
         reviewerIpAddress: req.connection.remoteAddress,
         reviewerUserAgent: req.headers["user-agent"],
         reviewerDeviceType: req.device.type,
-        createdBy: req.user.user.id,
+        createdBy: req?.user?.user?.id,
         createdAt: Date.now(),
       };
       const gameReviewer = await GameReviewers.create(insertReviewerData);
@@ -231,20 +248,25 @@ const addGameReviewers = async (req, res) => {
         const NewInsertreviewerEmailIdData = {
           gameUuid: uuidv4(),
           gameId: reqData.gameId,
-          reviewerId: gameReviewer?.gameReviewerId
-        }
-        const NewInsertReviewersGamesEmail = await ReviewersGame.create(NewInsertreviewerEmailIdData); 
+          reviewerId: gameReviewer?.gameReviewerId,
+        };
+        const NewInsertReviewersGamesEmail = await ReviewersGame.create(
+          NewInsertreviewerEmailIdData
+        );
 
         const gameReview = await GameReviews.create(insertrReviewData);
+
         result.push({
           emailId: eId,
           ReviewerId: gameReviewer.gameReviewerId,
           gameReviewId: gameReview.reviewId,
           message: "Email ID is added as Reviewer for this Game",
-          gameUuid: NewInsertreviewerEmailIdData.gameUuid
+          gameUuid: NewInsertreviewerEmailIdData.gameUuid,
         });
       }
     }
+
+    sendReviewInvitationMails(result);
 
     return res.status(200).json({
       status: "Success",
@@ -252,15 +274,15 @@ const addGameReviewers = async (req, res) => {
       result: result,
     });
   }
-  // }catch(error){
-  //   res
-  //   .status(500)
-  //   .json({
-  //     status: "Failure",
-  //     message: "Internal Server Error",
-  //     err: error.message,
-  //   });
-  // }
+  }catch(error){
+    res
+    .status(500)
+    .json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
+  }
 };
 
 /**
@@ -269,15 +291,17 @@ const addGameReviewers = async (req, res) => {
  * reviewerId: id,
  * reviewGameId: gameid,
  * tabId: {1-5}
- * tabAttribute: ENUM(['blockSeqId','screenId', 'filedName']) | null for background & characters 
- * tabAttributeValue: tabAttribute == blockSeqId => "2.1" |  screenId => [0: "Completion", 1: "Leaderboard", 2: "Reflection", 3: "Takeaway", 4":"Welcome", 5: "Thanks"], fieldName => "Title|Skill|Storyline|Outcomes|Category|Author" 
+ * tabAttribute: ENUM(['blockSeqId','screenId', 'filedName']) | null for background & characters
+ * tabAttributeValue: tabAttribute == blockSeqId => "2.1" |  screenId => [0: "Completion", 1: "Leaderboard", 2: "Reflection", 3: "Takeaway", 4":"Welcome", 5: "Thanks"], fieldName => "Title|Skill|Storyline|Outcomes|Category|Author"
  * review: "textAboutCurrentBlockBytheReviewerInAGame"
  * }
  */
-  const addGameReview = async (req, res) => {
-    try{
+const addGameReview = async (req, res) => {
+  try {
     if (!req.body) {
-      return res.status(400).json({ status: "Failure", message: "Bad request" });
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad request" });
     }
     const reqData = req.body.data;
     const gameReviewerData = await GameReviewers.findOne({
@@ -301,22 +325,24 @@ const addGameReviewers = async (req, res) => {
       //     review: null,
       //   },
       // });
-  
+
       // Your query
-  const queryOptions = {
-    where: {
-      gameReviewerId: { [Op.eq]: reqData.reviewerId },
-      reviewGameId: { [Op.eq]: reqData.reviewGameId },
-      tabId: { [Op.eq]: reqData.tabId },
-      tabAttribute: { [Op.like]: `%${reqData?.tabAttribute}%` },
-      tabAttributeValue: { [Op.like]: `%${reqData?.tabAttributeValue}%` },
-      review: null || '',
-    },
-  };
-  
-  // Log the query
-  const gameReviewData = await GameReviews.findOne(queryOptions, { logging: console.log });
-  
+      const queryOptions = {
+        where: {
+          gameReviewerId: { [Op.eq]: reqData.reviewerId },
+          reviewGameId: { [Op.eq]: reqData.reviewGameId },
+          tabId: { [Op.eq]: reqData.tabId },
+          tabAttribute: { [Op.like]: `%${reqData?.tabAttribute}%` },
+          tabAttributeValue: { [Op.like]: `%${reqData?.tabAttributeValue}%` },
+          review: null || "",
+        },
+      };
+
+      // Log the query
+      const gameReviewData = await GameReviews.findOne(queryOptions, {
+        logging: console.log,
+      });
+
       const reviewData = {
         review: reqData.review ? reqData.review : null,
         reviewIpAddress: req.connection.remoteAddress,
@@ -324,60 +350,62 @@ const addGameReviewers = async (req, res) => {
         reviewDeviceType: req.device.type,
         updatedAt: Date.now(),
       };
-  
+
       if (gameReviewData) {
         const updateFirstReview = await gameReviewData.update(reviewData);
         if (updateFirstReview) {
-          return res
-            .status(200)
-            .json({
-              status: "Success",
-              message: "Review Submitted Successfully",
-            });
+          return res.status(200).json({
+            status: "Success",
+            message: "Review Submitted Successfully",
+          });
         } else {
-          return res
-            .status(200)
-            .json({ status: "Failure", message: "Failed to Submit the Review" });
+          return res.status(200).json({
+            status: "Failure",
+            message: "Failed to Submit the Review",
+          });
         }
       } else {
         const reviewDataCreate = {
           gameReviewerId: reqData.reviewerId,
           reviewGameId: reqData.reviewGameId,
           tabId: reqData.tabId,
-          tabAttribute: (reqData.tabId == 4 || reqData.tabId == 5 || reqData.tabId == 3 ) ? reqData?.tabAttribute : null,
-          tabAttributeValue: (reqData.tabId == 4 || reqData.tabId == 5 || reqData.tabId == 3 ) ? reqData?.tabAttributeValue : null,
+          tabAttribute:
+            reqData.tabId == 4 || reqData.tabId == 5 || reqData.tabId == 3
+              ? reqData?.tabAttribute
+              : null,
+          tabAttributeValue:
+            reqData.tabId == 4 || reqData.tabId == 5 || reqData.tabId == 3
+              ? reqData?.tabAttributeValue
+              : null,
           createddAt: Date.now(),
           updatedAt: null,
           ...reviewData,
         };
         const CreateGameReview = await GameReviews.create(reviewDataCreate);
         if (CreateGameReview) {
-          return res
-            .status(200)
-            .json({
-              status: "Success",
-              message: "Review Submitted Successfully",
-            });
+          return res.status(200).json({
+            status: "Success",
+            message: "Review Submitted Successfully",
+          });
         } else {
-          return res
-            .status(200)
-            .json({ status: "Failure", message: "Failed to Submit the Review" });
+          return res.status(200).json({
+            status: "Failure",
+            message: "Failed to Submit the Review",
+          });
         }
       }
     }
     return res
       .status(404)
       .json({ status: "Failure", message: "Invalid request" });
-  }catch(error){
-    res
-    .status(500)
-    .json({
+  } catch (error) {
+    res.status(500).json({
       status: "Failure",
       message: "Internal Server Error",
       err: error.message,
     });
   }
-  };
+};
 
 /**
  * getGameAllReviews()
@@ -388,32 +416,44 @@ const addGameReviewers = async (req, res) => {
  *  "tabAttribute": "blockSeq",
  *  "tabAttributeValue": "10.2"
  * }
- * @param {*} res 
+ * @param {*} res
  */
 
-const getGameAllReviews = async(req, res) =>{
-  try{
-  if(!req?.body){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
+const getGameAllReviews = async (req, res) => {
+  try {
+    if (!req?.body) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
+    }
+    const reqData = req.body.data;
+    const blockReview = await GameReviews.findAll({
+      where: {
+        gameReviewerId: { [Op.eq]: reqData.gameReviewerId },
+        reviewGameId: { [Op.eq]: reqData.reviewGameId },
+        tabId: { [Op.eq]: reqData.tabId },
+        tabAttribute: { [Op.like]: `%${reqData.tabAttribute}%` },
+        tabAttributeValue: { [Op.like]: `%${reqData.tabAttributeValue}%` },
+      },
+    });
+    if (blockReview) {
+      return res.status(200).json({
+        status: "Success",
+        message: "Record Found",
+        result: blockReview,
+      });
+    }
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
-  const reqData = req.body.data;
-  const blockReview = await GameReviews.findAll({where: {gameReviewerId: {[Op.eq]: reqData.gameReviewerId}, reviewGameId : {[Op.eq]: reqData.reviewGameId}, tabId : {[Op.eq]:reqData.tabId} ,tabAttribute : {[Op.like]: `%${reqData.tabAttribute}%`},tabAttributeValue : {[Op.like]: `%${reqData.tabAttributeValue}%`} }})
-  if(blockReview){
-    return res.status(200).json({status:"Success",message:"Record Found", result: blockReview});
-  }
-  return res.status(400).json({status:"Failure",message:"No Record Found"});
-}
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
-
+};
 
 /**
  * getGameBlockReview()
@@ -424,58 +464,77 @@ catch(error){
  *  "tabAttribute": "blockSeq",
  *  "tabAttributeValue": "10.2"
  * }
- * @param {*} res 
+ * @param {*} res
  */
 
-const getGameReviewById = async(req, res) =>{
-  try{
-  if(!req?.body){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
-  }
-  const reviewId = req?.params?.id;
-    if(!reviewId)
-    {
-      return res.status(400).json({status:"Failure",message:"Invalid Request"});
+const getGameReviewById = async (req, res) => {
+  try {
+    if (!req?.body) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
     }
-  
-  const Review = await GameReviews.findOne({where: {reviewId: {[Op.eq]: reviewId}}});
-  if(Review){
-    return res.status(200).json({status:"Success",message:"Record Found", result: Review});
+    const reviewId = req?.params?.id;
+    if (!reviewId) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Invalid Request" });
+    }
+
+    const Review = await GameReviews.findOne({
+      where: { reviewId: { [Op.eq]: reviewId } },
+    });
+    if (Review) {
+      return res
+        .status(200)
+        .json({ status: "Success", message: "Record Found", result: Review });
+    }
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
-  return res.status(400).json({status:"Failure",message:"No Record Found"});
-}
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
-const getGameBlockReview = async(req, res) =>{
-  try{
-  if(!req?.body){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
+};
+const getGameBlockReview = async (req, res) => {
+  try {
+    if (!req?.body) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
+    }
+    const reqData = req.body.data;
+    const blockReview = await GameReviews.findOne({
+      where: {
+        gameReviewerId: { [Op.eq]: reqData.gameReviewerId },
+        reviewGameId: { [Op.eq]: reqData.reviewGameId },
+        tabId: { [Op.eq]: reqData.tabId },
+        tabAttribute: { [Op.like]: `%${reqData.tabAttribute}%` },
+        tabAttributeValue: { [Op.like]: `%${reqData.tabAttributeValue}%` },
+      },
+    });
+    if (blockReview) {
+      return res.status(200).json({
+        status: "Success",
+        message: "Record Found",
+        result: blockReview,
+      });
+    }
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
-  const reqData = req.body.data;
-  const blockReview = await GameReviews.findOne({where: {gameReviewerId: {[Op.eq]: reqData.gameReviewerId}, reviewGameId : {[Op.eq]: reqData.reviewGameId}, tabId : {[Op.eq]:reqData.tabId} ,tabAttribute : {[Op.like]: `%${reqData.tabAttribute}%`},tabAttributeValue : {[Op.like]: `%${reqData.tabAttributeValue}%`} }})
-  if(blockReview){
-    return res.status(200).json({status:"Success",message:"Record Found", result: blockReview});
-  }
-  return res.status(400).json({status:"Failure",message:"No Record Found"});
-}
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
+};
 
 /**
  * getGameBlockReview()
@@ -483,64 +542,77 @@ catch(error){
  * reviewId: id
  * review: "String"
  * }
- * @param {*} res 
+ * @param {*} res
  */
-const updateGameBlockReview = async(req, res) =>{
-  try{
-  if(!req?.body){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
-  }
-  const reqData = req.body.data;
+const updateGameBlockReview = async (req, res) => {
+  try {
+    if (!req?.body) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
+    }
+    const reqData = req.body.data;
 
-  const blockReview = await GameReviews.findOne({where: {reviewId: {[Op.eq]: reqData.reviewId}}})
-  if(blockReview){
-    const updateResult = await blockReview.update({review : reqData.review});
-    if(updateResult)
-    return res.status(200).json({status:"Success",message:"Game Block Review updated"});
-  
-    return res.status(400).json({status:"Failure",message:"Game Block Review updation Failed"});
+    const blockReview = await GameReviews.findOne({
+      where: { reviewId: { [Op.eq]: reqData.reviewId } },
+    });
+    if (blockReview) {
+      const updateResult = await blockReview.update({ review: reqData.review });
+      if (updateResult)
+        return res
+          .status(200)
+          .json({ status: "Success", message: "Game Block Review updated" });
+
+      return res.status(400).json({
+        status: "Failure",
+        message: "Game Block Review updation Failed",
+      });
+    }
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
-  return res.status(400).json({status:"Failure",message:"No Record Found"});
-}
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
+};
 
 /**
  * deleteGameBlockReview()
  * @param => reviewId
- * @param {*} res 
+ * @param {*} res
  */
-const deleteGameBlockReview = async(req, res) =>{
-  try{
+const deleteGameBlockReview = async (req, res) => {
+  try {
     const reviewId = req?.params?.id;
-  if(!reviewId){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
-  }
-  // const blockReview = await GameReviews.findOne({where: {gameReviewerId: {[Op.eq]: reqData.gameReviewerId}, reviewGameId : {[Op.eq]: reqData.reviewGameId}, reviewGameBlockId: {[Op.like]: `%${reqData.reviewGameBlockId}%` } }})
-  const blockReview = await GameReviews.destroy({where: {reviewId: {[Op.eq]: reviewId}}})
-  if(blockReview)
-    return res.status(200).json({status:"Success",message:"Game Block Review removed"});
+    if (!reviewId) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
+    }
+    // const blockReview = await GameReviews.findOne({where: {gameReviewerId: {[Op.eq]: reqData.gameReviewerId}, reviewGameId : {[Op.eq]: reqData.reviewGameId}, reviewGameBlockId: {[Op.like]: `%${reqData.reviewGameBlockId}%` } }})
+    const blockReview = await GameReviews.destroy({
+      where: { reviewId: { [Op.eq]: reviewId } },
+    });
+    if (blockReview)
+      return res
+        .status(200)
+        .json({ status: "Success", message: "Game Block Review removed" });
     // return res.status(400).json({status:"Failure",message:"Game Block Review delete Failed"});
-    return res.status(400).json({status:"Failure",message:"No Record Found"});
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
+};
 
 /**
  * getGameBlockReviewList()
@@ -550,109 +622,184 @@ catch(error){
  *  "tabAttribute": "blockSeqId",
  *  "tabAttributeValue": "10.3"
  * }
- * @param {*} res 
+ * @param {*} res
  */
-const getGameBlockReviewList = async(req, res) =>{
-  try{
-
-  if(!req?.body){
-    return res.status(400).json({status:"Failure",message:"Bad Request"});
-  }
-  const reqData = req.body.data;
-  const gameReviewlist = await GameReviews.findAll({where: {reviewGameId : {[Op.eq]: reqData.reviewGameId}, tabId: {[Op.eq]: reqData.tabId}, tabAttribute: {[Op.like]: `%${reqData.tabAttribute}%` }, tabAttributeValue: {[Op.like]: `%${reqData.tabAttributeValue}%` }}})
-  if(gameReviewlist){
-    return res.status(200).json({status:"Success",message:"Record Found", result: gameReviewlist});
-  }
-  return res.status(400).json({status:"Failure",message:"No Record Found"});
-}
-catch(error){
-  res
-  .status(500)
-  .json({
-    status: "Failure",
-    message: "Internal Server Error",
-    err: error.message,
-  });
-}
-}
-
-const getGameReviewList =async (req, res)=>{
-  try{
-    const gameId = req?.params?.gameId;
-    if(gameId)
-    {
-    const tabReviewSets =[];
-    let reviewerIdArray =[];
-    for(let i=1; i<=5; i++)
-    {
-      let reviewlist = await GameReviews.findAll({where : {reviewGameId: {[Op.eq]: gameId}, tabId:{[Op.eq]: i}}, attributes:{exclude: ['reviewIpAddress', 'reviewIpAddress', 'reviewDeviceType', 'deletedAt', 'reviewUserAgent']},  
-      // include: [
-      //   {
-      //     model: GameReviewers,
-      //     attributes: ['gameReviewerId', 'creatorId', 'emailId', 'activeStatus'],
-      //     // include: [
-      //     //   {
-      //     //     model: Creators,
-      //     //     attributes: ['ctName'], // Add the attributes you want to include from the Creator model
-      //     //     required: false,
-      //     //   },
-      //     // ],
-      //     // where: {
-      //     //   gameReviewerId: Sequelize.col('lmsgamereviewers.gameReviewerId'),
-      //     // },
-
-      //   },
-      // ],
-    });
-   
-      tabReviewSets[i] = reviewlist;
-      Object.values(reviewlist).forEach((item)=>{
-        reviewerIdArray.push(item.gameReviewerId);
-      })
-
+const getGameBlockReviewList = async (req, res) => {
+  try {
+    if (!req?.body) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
     }
-    const uniqueReviewerIdArray = [...new Set(reviewerIdArray)];
-    
-    /**get the reviewers details */
-    const reviewerdetailPromiseAll = uniqueReviewerIdArray.map(async (item)=>{
-      let result = await GameReviewers.findByPk(item,
-       { attributes: ['gameReviewerId', 'creatorId', 'emailId', 'activeStatus'],
-        include: [{
-          model: Creators,
-          attributes: ['ctId', 'ctName','ctMail'],
-          as: "ReviewingCreator"
-        }]}
-        );
-      return result;
-    })
-    const reviewerdetail= await Promise.all(reviewerdetailPromiseAll);
-
-
-    return res
-    .status(200)
-    .json({
-      status: "Success",
-      message: "Record Found",
-      reviewlist:  tabReviewSets,
-      reviewerDetails: reviewerdetail,
+    const reqData = req.body.data;
+    const gameReviewlist = await GameReviews.findAll({
+      where: {
+        reviewGameId: { [Op.eq]: reqData.reviewGameId },
+        tabId: { [Op.eq]: reqData.tabId },
+        tabAttribute: { [Op.like]: `%${reqData.tabAttribute}%` },
+        tabAttributeValue: { [Op.like]: `%${reqData.tabAttributeValue}%` },
+      },
     });
-  }
-  return res
-  .status(400)
-  .json({
-    status: "Failure",
-    message: "Invalid request",
-  });
-  }
-  catch(error){
-    res
-    .status(500)
-    .json({
+    if (gameReviewlist) {
+      return res.status(200).json({
+        status: "Success",
+        message: "Record Found",
+        result: gameReviewlist,
+      });
+    }
+    return res
+      .status(400)
+      .json({ status: "Failure", message: "No Record Found" });
+  } catch (error) {
+    res.status(500).json({
       status: "Failure",
       message: "Internal Server Error",
       err: error.message,
     });
   }
-}
+};
 
-module.exports = { addGameReview, addGameReviewers, getGameBlockReview,updateGameBlockReview,deleteGameBlockReview,getGameBlockReviewList, getGameAllReviews,getGameReviewById, getGameReviewList};
+const getGameReviewList = async (req, res) => {
+  try {
+    const gameId = req?.params?.gameId;
+    if (gameId) {
+      const tabReviewSets = [];
+      let reviewerIdArray = [];
+      for (let i = 1; i <= 5; i++) {
+        let reviewlist = await GameReviews.findAll({
+          where: { reviewGameId: { [Op.eq]: gameId }, tabId: { [Op.eq]: i } },
+          attributes: {
+            exclude: [
+              "reviewIpAddress",
+              "reviewIpAddress",
+              "reviewDeviceType",
+              "deletedAt",
+              "reviewUserAgent",
+            ],
+          },
+          // include: [
+          //   {
+          //     model: GameReviewers,
+          //     attributes: ['gameReviewerId', 'creatorId', 'emailId', 'activeStatus'],
+          //     // include: [
+          //     //   {
+          //     //     model: Creators,
+          //     //     attributes: ['ctName'], // Add the attributes you want to include from the Creator model
+          //     //     required: false,
+          //     //   },
+          //     // ],
+          //     // where: {
+          //     //   gameReviewerId: Sequelize.col('lmsgamereviewers.gameReviewerId'),
+          //     // },
+
+          //   },
+          // ],
+        });
+
+        tabReviewSets[i] = reviewlist;
+        Object.values(reviewlist).forEach((item) => {
+          reviewerIdArray.push(item.gameReviewerId);
+        });
+      }
+      const uniqueReviewerIdArray = [...new Set(reviewerIdArray)];
+
+      /**get the reviewers details */
+      const reviewerdetailPromiseAll = uniqueReviewerIdArray.map(
+        async (item) => {
+          let result = await GameReviewers.findByPk(item, {
+            attributes: [
+              "gameReviewerId",
+              "creatorId",
+              "emailId",
+              "activeStatus",
+            ],
+            include: [
+              {
+                model: Creators,
+                attributes: ["ctId", "ctName", "ctMail"],
+                as: "ReviewingCreator",
+              },
+            ],
+          });
+          return result;
+        }
+      );
+      const reviewerdetail = await Promise.all(reviewerdetailPromiseAll);
+
+      return res.status(200).json({
+        status: "Success",
+        message: "Record Found",
+        reviewlist: tabReviewSets,
+        reviewerDetails: reviewerdetail,
+      });
+    }
+    return res.status(400).json({
+      status: "Failure",
+      message: "Invalid request",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
+  }
+};
+
+const sendReviewInvitationMails = async (result) => {
+  if (Array.isArray(result) && result?.length > 0) {
+    /** Adding the Email ids in the queue to send Emails $$$*/
+    result.forEach(async (item) => {
+      if (item?.emailId && item.gameUuid) {
+        const reviewer = await ReviewersGame.findOne({
+          where: { gameUuid: { [Op.like]: `%${item.gameUuid}%` } },
+        });
+        const data = {
+          to: item.emailId,
+          subject: "Invitation for my Game Review",
+          templateData: {
+            gameCreatorName: "gameCreatorName",
+            gameUuid: item.gameUuid,
+            gameReviewLink:
+              "http://192.168.1.29:5555/game/tryout/" + item.gameUuid,
+            recipientName: "recipientName",
+          },
+          templateFile: "reviewInvitation",
+        };
+        try {
+          //Handle Mail response
+          const mailStatus = await sendMail(data);
+     
+          if (mailStatus.error) {
+            console.log("has error");
+            const updateResult = await reviewer.update({
+              mailStatus: "failed",
+              statusMessage: mailStatus.error?.message,
+            });
+          } else {
+            const updateResult = await reviewer.update({ mailStatus: "sent", statusMessage: mailStatus?.info?.response, mailMessageId: mailStatus?.info?.messageId});
+            console.log("updateResult sent", updateResult);
+          }
+        } catch (error) {
+          const updateResult = await reviewer.update({
+            mailStatus: "failed",
+            statusMessage: mailStatus.error.message,
+          });
+          console.log("updateResult catch", updateResult);
+        }
+      }
+    });
+  }
+};
+
+module.exports = {
+  addGameReview,
+  addGameReviewers,
+  getGameBlockReview,
+  updateGameBlockReview,
+  deleteGameBlockReview,
+  getGameBlockReviewList,
+  getGameAllReviews,
+  getGameReviewById,
+  getGameReviewList,
+};

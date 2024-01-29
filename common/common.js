@@ -12,6 +12,8 @@ const capitalize = (str) => {
     return emailRegex.test(emailId);
   };
 
+
+
   module.exports=  {
     capitalize,
     generateRandomNumber,

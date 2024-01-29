@@ -16,6 +16,19 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      mailStatus: {
+        type: Sequelize.ENUM(['queued','sent','failed']), // Add a status field to track job status (e.g., 'queued', 'completed', 'failed')
+        allowNull: false,
+        defaultValue: 'queued'
+      },
+      statusMessage: {
+        type: Sequelize.STRING(250),
+        allowNull: true,
+      },
+      mailMessageId: {
+        type: Sequelize.STRING(250),
+        allowNull: true,
+      },
     },
     {
       tableName: 'lmsreviewersgames',

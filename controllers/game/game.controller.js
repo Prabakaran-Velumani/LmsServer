@@ -3514,7 +3514,7 @@ WHERE
 
 const getGameCollections = async (req, res) => {
   const reqUuid = req.params?.uuid;
-  try{
+  // try{
   const reviewerGame = await ReviewersGame.findOne({
     where: { gameUuid: { [Op.eq]: reqUuid } },
     include: [
@@ -3601,10 +3601,10 @@ const getGameCollections = async (req, res) => {
   });
 
   return res.status(200).json({ result: reviewerGame });
-}
-catch(error){
-  return res.status(400).json({error: error});
-}
+// }
+// catch(error){
+//   return res.status(400).json({error: error});
+// }
 }
 
 module.exports = {

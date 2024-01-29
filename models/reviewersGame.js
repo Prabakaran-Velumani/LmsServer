@@ -18,7 +18,19 @@ const LmsReviewersGame = sequelize.define(
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-
+      mailStatus:{
+        type: Sequelize.ENUM(['queued','sent','failed']),
+        allowNull: false,
+        defaultValue: 'queued'
+      },
+      statusMessage: {
+        type: Sequelize.STRING(250),
+        allowNull: true,
+      },
+      mailMessageId: {
+        type: Sequelize.STRING(250),
+        allowNull: true,
+      },
     },
     {
         tableName: "lmsreviewersgames", // Specify the table name if it differs from the model name
