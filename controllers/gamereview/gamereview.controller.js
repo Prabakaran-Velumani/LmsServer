@@ -379,7 +379,7 @@ const addGameReview = async (req, res) => {
               : null,
           createddAt: Date.now(),
           updatedAt: null,
-          ...reviewData,
+          // ...reviewData,
         };
         const CreateGameReview = await GameReviews.create(reviewDataCreate);
         if (CreateGameReview) {

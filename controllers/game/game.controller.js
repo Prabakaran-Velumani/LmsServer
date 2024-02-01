@@ -12,6 +12,7 @@ const Catgory = require("../../models/category");
 const Skill = require("../../models/skills");
 const { storageLocations } = require("../../config/storageConfig");
 const lmsquestionsoption = require("../../models/questionOptions");
+const Creator = require("../../models/Creator");
 const Reviewers = require("../../models/gameReviewers");
 const Reviewes = require("../../models/gameReviews");
 const ReviewersGame = require("../../models/reviewersGame");
@@ -121,7 +122,7 @@ const getGame = async (req, res) => {
       },
       group: ['gameExtensionId'],
       order: [['gameId', 'DESC']],
-      logging: console.log // Log the generated SQL query
+      // logging: console.log // Log the generated SQL query
     });
 
     const modifiedData = await Promise.all(allData.map(async game => {
@@ -3542,6 +3543,12 @@ const getGameCollections = async (req, res) => {
               reviewerId: Sequelize.col("lmsreviewersgames.reviewerId"),
             },
           },
+          {
+            model: Creator,
+            attributes: ["ctId", "ctName", "ctMail", "ctGender", "ctStatus", "ctDeleteStatus"],
+            as : "ReviewingCreator",
+            required: false, // This ensures that only records with a matching creatorId are included
+          },
         ],
       },
       {
@@ -3565,10 +3572,11 @@ const getGameCollections = async (req, res) => {
               "gasId",
               "gasAssetType",
               "gasAssetName",
-              "gasAssetImage",
               "gasStatus",
               "gasDeleteStatus",
+                [Sequelize.literal(`CONCAT('${req.protocol}://${req.get('host')}/', gasAssetImage)`), 'gasAssetImage'],
             ],
+            // required: false,
           },
           {
             model: gameHistory,
