@@ -3515,7 +3515,7 @@ WHERE
 
 const getGameCollections = async (req, res) => {
   const reqUuid = req.params?.uuid;
-  // try{
+  try{
   const reviewerGame = await ReviewersGame.findOne({
     where: { gameUuid: { [Op.eq]: reqUuid } },
     include: [
@@ -3549,6 +3549,7 @@ const getGameCollections = async (req, res) => {
             as : "ReviewingCreator",
             required: false, // This ensures that only records with a matching creatorId are included
           },
+
         ],
       },
       {
@@ -3603,16 +3604,30 @@ const getGameCollections = async (req, res) => {
               exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
             },
           },
+          // {
+          //   model: ReflectionQuestion,
+          //   as: "reflectionQuestions",
+          //   where: {
+          //     gameId: Sequelize.col("lmsreflectionquestion.refGameId"),
+          //   },
+          // }
         ],
       },
     ],
   });
-
-  return res.status(200).json({ result: reviewerGame });
-// }
-// catch(error){
-//   return res.status(400).json({error: error});
-// }
+  reviewerGame.lmsgame = {"reflectionQuestions": [], ...reviewerGame.lmsgame};
+  
+  let gameReflectionQuest =[];
+  if(reviewerGame)
+  {
+    gameReflectionQuest = await ReflectionQuestion.findAll({where: {refGameId:  {[Op.eq]: reviewerGame.gameId}}});
+  }
+  
+  return res.status(200).json({ result: reviewerGame, resultReflection: gameReflectionQuest  });
+}
+catch(error){
+  return res.status(400).json({error: error});
+}
 }
 
 module.exports = {

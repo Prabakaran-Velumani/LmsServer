@@ -1,6 +1,7 @@
 // models/games.js
 const { DataTypes } = require('sequelize');
 const sequelize = require("../lib/config/database");
+const LmsGame = require('./game');
 
 const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
   refId: {
@@ -71,6 +72,8 @@ const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
   tableName: 'lmsreflectionquestion', // Specify the table name if it differs from the model name
   freezeTableName: true,
 });
+
+// ReflectionQuestion.belongsTo(LmsGame,{foreignKey: "refGameId",  as: "gameReflectionQuestion"});
 // sequelize
 //   .sync()
 //   .then(() => {

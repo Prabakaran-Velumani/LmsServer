@@ -5,6 +5,9 @@ const gameAssest = require("./gameAsset");
 const gameHistory=require("./gameviewhistory");
 const LmsBlocks=require("./blocks");
 const Questionoption=require("./questionOptions")
+const ReflectionQuestion = require("./reflectionQuestions");
+
+
 //gameLastTabArray
 // gameCompletionScreenId: null,
   // gameLeaderboardScreenId: null,
@@ -504,12 +507,18 @@ const LmsGame = sequelize.define(
               freezeTableName: true,
             }
           );
+// LmsGame.belongsTo(ReflectionQuestion, { foreignKey: 'gameReflectionQuestion', targetKey: 'refId', as: 'reflectionQuestions' });
 LmsGame.belongsTo(gameAssest, { foreignKey: "gameBackgroundId", as: "image" });
 LmsGame.belongsTo(gameHistory, { foreignKey: "gameId", as: "gameview" });
 LmsGame.hasMany(LmsBlocks, { foreignKey: 'blockGameId' });
-LmsGame.hasMany(Questionoption, { foreignKey: 'qpGameId' });
 LmsBlocks.belongsTo(LmsGame, { foreignKey: 'blockGameId' });
+LmsGame.hasMany(Questionoption, { foreignKey: 'qpGameId' });
+
 Questionoption.belongsTo(LmsGame, { foreignKey: 'qpGameId' });
+
+
+// LmsGame.hasMany(ReflectionQuestion,{foreignKey: "refGameId"});
+// ReflectionQuestion.belongsTo(LmsGame, {foreignKey: "refGameId"});
 // sequelize
 //   .sync({alter:true}) 
 //   .then(() => {
