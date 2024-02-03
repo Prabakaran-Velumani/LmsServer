@@ -31,7 +31,7 @@ const LmsGameReviews = sequelize.define(
         },
       },
       tabAttribute:{
-        type: DataTypes.ENUM(['blockSeqId','screenId', 'filedName']),
+        type: DataTypes.ENUM(['blockSeqId','screenId', 'fieldName']),
         allowNull: true,
       },
       tabAttributeValue:{

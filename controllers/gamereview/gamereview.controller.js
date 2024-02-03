@@ -7,7 +7,7 @@ const ReviewersGame = require("../../models/reviewersGame");
 const Creators = require("../../models/Creator");
 const { validateEmail } = require("../../common/common");
 const { v4: uuidv4 } = require("uuid");
-// const LmsGameReviewers = require("../../models/gameReviewers");
+const gamecontroller = require('../../controllers/game/game.controller');
 
 const handlebars = require("handlebars");
 const fs = require("fs");
@@ -315,32 +315,15 @@ const addGameReview = async (req, res) => {
        * if it not has any review for any blocks of this game, then update the current review into it
        * else create a new record in gameReviews Table
        */
-      // const gameReviewData = await GameReviews.findOne({
-      //   where: {
-      //     gameReviewerId: { [Op.eq]: reqData.reviewerId },
-      //     reviewGameId: { [Op.eq]: reqData.reviewGameId },
-      //     tabId: { [Op.eq]: reqData.tabId},
-      //     tabAttribute: { [Op.like]: `%${reqData?.tabAttribute}%`},
-      //     tabAttributeValue: { [Op.like]: `%${reqData?.tabAttributeValue}%`},
-      //     review: null,
-      //   },
-      // });
-
-      // Your query
-      const queryOptions = {
+      const gameReviewData = await GameReviews.findOne({
         where: {
           gameReviewerId: { [Op.eq]: reqData.reviewerId },
           reviewGameId: { [Op.eq]: reqData.reviewGameId },
-          tabId: { [Op.eq]: reqData.tabId },
-          tabAttribute: { [Op.like]: `%${reqData?.tabAttribute}%` },
-          tabAttributeValue: { [Op.like]: `%${reqData?.tabAttributeValue}%` },
-          review: null || "",
+          tabId: { [Op.eq]: reqData.tabId},
+          tabAttribute: { [Op.like]: `%${reqData?.tabAttribute}%`},
+          tabAttributeValue: { [Op.like]: `%${reqData?.tabAttributeValue}%`},
+          review: null,
         },
-      };
-
-      // Log the query
-      const gameReviewData = await GameReviews.findOne(queryOptions, {
-        logging: console.log,
       });
 
       const reviewData = {
@@ -354,9 +337,12 @@ const addGameReview = async (req, res) => {
       if (gameReviewData) {
         const updateFirstReview = await gameReviewData.update(reviewData);
         if (updateFirstReview) {
+          // req.body.data $$$
+        //  const gamedata = await gamecontroller.getGameCollections(id);
           return res.status(200).json({
             status: "Success",
             message: "Review Submitted Successfully",
+            // result: gamedata
           });
         } else {
           return res.status(200).json({
@@ -379,13 +365,15 @@ const addGameReview = async (req, res) => {
               : null,
           createddAt: Date.now(),
           updatedAt: null,
-          // ...reviewData,
+          ...reviewData,
         };
         const CreateGameReview = await GameReviews.create(reviewDataCreate);
         if (CreateGameReview) {
+          // const gamedata = await gamecontroller.getGameCollections(req.body.id);
           return res.status(200).json({
             status: "Success",
             message: "Review Submitted Successfully",
+            // result : gamedata
           });
         } else {
           return res.status(200).json({
