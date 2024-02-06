@@ -2,6 +2,7 @@ const express = require('express');
 const {getGame,addGame,updateGame,uploadBadge,getGameById, getBlocks,countByStage, gameDuplicate, gameLaunch, gameAssign, gamePublic,uploadIntroMusic, gameDelete,gameLearnersList,getDefaultCat,getDefaultSkill, getCreatorBlocks, getAudio, getBadge, gameQuestionDuplicateEntire,StroyInserting,GetStroy,ListStroy,getGameTemplate,viewHistroyMaintance,exitTemplateOpen, GetPreview,sentFeedbackMail,QuestDeletion,getCompletionScreen,getTotalMinofWords,ComplitionUpdate,getStoryValidtion, getGameCollections} = require('../../controllers/game/game.controller');
 const { uploadSettings, fileFilters, storageLocations } = require('../../config/storageConfig');
 const router = express.Router();
+const path = require("path");
 
 router.put('/getAllgame/:type',getGame);
 router.put('/gettemplategame/',getGameTemplate);
@@ -37,4 +38,14 @@ router.get('/getStoryValidtion/:id',getStoryValidtion);
 router.get('/uploadbadge',uploadSettings('badges',fileFilters.imageFilter,'gasAssetImage',storageLocations.badges),uploadBadge);
 router.post('/uploadaudio',uploadSettings('audios',fileFilters.audioFilter,'gasAssetImage',storageLocations.audios),uploadIntroMusic);
 router.get('/tryout/:uuid', getGameCollections);
+router.get('/audioTest', (req, res)=>{
+    const url = `${req.protocol}://${req.get("host")}/uploads/audios/intromusicone.mp3`;
+//   const audioFilePath = 'uploads/audios/intromusicone.mp3';
+  // Set the Content-Type header for audio/mpeg
+//   console.log("audioFilePath", audioFilePath);
+  res.setHeader('Content-Type', 'audio/mpeg');
+  // Send the audio file
+  res.status(200).json({status: "success",url:url});
+
+});
 module.exports = router;
