@@ -192,13 +192,11 @@ const getGame = async (req, res) => {
       count: count,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const getGameTemplate = async (req, res) => {
@@ -419,13 +417,11 @@ const getGameTemplate = async (req, res) => {
       count: count,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const updateGame = async (req, res) => {
@@ -620,21 +616,17 @@ const updateGame = async (req, res) => {
       return res
         .status(404)
         .json({ status: "Failure", message: "bad Request" });
-    return res
-      .status(200)
-      .json({
-        status: "Success",
-        message: "Game Updated Succesfully",
-        data: data,
-      });
+    return res.status(200).json({
+      status: "Success",
+      message: "Game Updated Succesfully",
+      data: data,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const getGameById = async (req, res) => {
@@ -654,13 +646,11 @@ const getGameById = async (req, res) => {
       return res.status(404).json({ error: "Record not found" });
     }
 
-    res
-      .status(200)
-      .json({
-        status: "Success",
-        message: "Data Retrieved Successfully",
-        data: specificData,
-      });
+    res.status(200).json({
+      status: "Success",
+      message: "Data Retrieved Successfully",
+      data: specificData,
+    });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error", err: error });
   }
@@ -697,13 +687,11 @@ const getBlocks = async (req, res) => {
       count: count,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error,
+    });
   }
 };
 const countByStage = async (req, res) => {
@@ -792,13 +780,11 @@ const countByStage = async (req, res) => {
       count: overallCount.length,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error,
+    });
   }
 };
 const gameDuplicate = async (req, res) => {
@@ -935,29 +921,23 @@ const gameDuplicate = async (req, res) => {
           gameId: setExtenstion[0],
         },
       });
-      return res
-        .status(200)
-        .json({
-          status: "Success",
-          message: "Game Duplicated successfully.",
-          data: sendData,
-        });
-    }
-    return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         status: "Success",
         message: "Game Duplicated successfully.",
         data: sendData,
       });
+    }
+    return res.status(200).json({
+      status: "Success",
+      message: "Game Duplicated successfully.",
+      data: sendData,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const gameLaunch = async (req, res) => {
@@ -988,13 +968,11 @@ const gameLaunch = async (req, res) => {
       .status(200)
       .json({ status: "Success", message: "Record Successfully Deleted" });
   } catch {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error,
+    });
   }
 };
 const gameAssign = async (req, res) => {
@@ -1135,30 +1113,24 @@ const gamePublic = async (req, res) => {
           gameId: setExtenstion[0],
         },
       });
-      return res
-        .status(200)
-        .json({
-          status: "Success",
-          message: "Game Duplicated successfully.",
-          data: sendData,
-        });
-    } else {
-    }
-    return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         status: "Success",
         message: "Game Duplicated successfully.",
         data: sendData,
       });
+    } else {
+    }
+    return res.status(200).json({
+      status: "Success",
+      message: "Game Duplicated successfully.",
+      data: sendData,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const gameDelete = async (req, res) => {
@@ -1188,13 +1160,11 @@ const gameDelete = async (req, res) => {
       .json({ status: "Success", message: "Record Successfully Deleted" });
   } catch (error) {
     // Corrected variable name
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error,
+    });
   }
 };
 const gameLearnersList = async (req, res) => {
@@ -1353,21 +1323,17 @@ const gameQuestionDuplicateEntire = async (req, res) => {
               gameId: clonedGame.gameId,
             },
           });
-          res
-            .status(400)
-            .json({
-              message: "Stroy Not In the Game .",
-              data: clonedGame.gameId,
-            });
+          res.status(400).json({
+            message: "Stroy Not In the Game .",
+            data: clonedGame.gameId,
+          });
         }
 
-        return res
-          .status(200)
-          .json({
-            status: "Success",
-            message: "Game Duplicated successfully.",
-            data: clonedGame,
-          });
+        return res.status(200).json({
+          status: "Success",
+          message: "Game Duplicated successfully.",
+          data: clonedGame,
+        });
       } else {
         return res
           .status(400)
@@ -1436,22 +1402,18 @@ const gameQuestionDuplicateEntire = async (req, res) => {
         .status(400)
         .json({ status: "Failure", message: "Game Not Duplicated." });
     } else {
-      return res
-        .status(200)
-        .json({
-          status: "Success",
-          message: "Game Duplicated successfully.",
-          data: clonedGame,
-        });
+      return res.status(200).json({
+        status: "Success",
+        message: "Game Duplicated successfully.",
+        data: clonedGame,
+      });
     }
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const getDefaultCat = async (req, res) => {
@@ -1571,22 +1533,18 @@ const getCreatorBlocks = async (req, res) => {
       return res
         .status(404)
         .json({ status: "Failure", error: "File not found" });
-    return res
-      .status(200)
-      .json({
-        status: "Success",
-        message: "File not found",
-        data: data,
-        quest: quest,
-      });
+    return res.status(200).json({
+      status: "Success",
+      message: "File not found",
+      data: data,
+      quest: quest,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 const uploadBadge = async (req, res) => {
@@ -1721,13 +1679,11 @@ const getAudio = async (req, res) => {
       .status(200)
       .json({ status: "Success", message: "Had a File ", data: url });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error6",
-        err: error.message,
-      });
+    return res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error6",
+      err: error.message,
+    });
   }
 };
 
@@ -2979,29 +2935,23 @@ const exitTemplateOpen = async (req, res) => {
           gameId: setExtenstion[0],
         },
       });
-      return res
-        .status(200)
-        .json({
-          status: "Success",
-          message: "Game Duplicated successfully.",
-          data: sendData,
-        });
-    }
-    return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         status: "Success",
         message: "Game Duplicated successfully.",
         data: sendData,
       });
+    }
+    return res.status(200).json({
+      status: "Success",
+      message: "Game Duplicated successfully.",
+      data: sendData,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        err: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      err: error.message,
+    });
   }
 };
 
@@ -3281,13 +3231,11 @@ const sentFeedbackMail = async (req, res) => {
       });
     }
     if (errorMail) {
-      return res
-        .status(500)
-        .json({
-          status: "Failure",
-          error: "Internal Server Error",
-          err: errorMail,
-        });
+      return res.status(500).json({
+        status: "Failure",
+        error: "Internal Server Error",
+        err: errorMail,
+      });
     } else {
       return res.status(200).json({
         status: "Success",
@@ -3689,12 +3637,10 @@ const ComplitionUpdate = async (req, res) => {
         });
 
         if (!updateResult || updateResult[0] === 0) {
-          return res
-            .status(404)
-            .json({
-              status: "Failure",
-              message: `Failed to update ${key} with value ${value}.`,
-            });
+          return res.status(404).json({
+            status: "Failure",
+            message: `Failed to update ${key} with value ${value}.`,
+          });
         }
       }
     }
@@ -3706,13 +3652,11 @@ const ComplitionUpdate = async (req, res) => {
   } catch (error) {
     // Handle any errors that may occur during the update
     // console.error('Error during update:', error);
-    res
-      .status(500)
-      .json({
-        status: "Failure",
-        message: "Internal Server Error",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 };
 
@@ -3742,7 +3686,7 @@ const getGameCollections = async (req, res) => {
       include: [
         {
           model: Reviewers,
-          as: "lmsgamereviewer",      
+          as: "lmsgamereviewer",
           attributes: [
             "gameReviewerId",
             "creatorId",
@@ -3796,6 +3740,9 @@ const getGameCollections = async (req, res) => {
               "updatedAt",
               "deletedAt",
             ],
+            // where: {
+            //   gameId: Sequelize.col("lmsreviewersgames.gameId"),
+            // }
           },
           include: [
             {
@@ -3847,40 +3794,34 @@ const getGameCollections = async (req, res) => {
                 exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
               },
             },
-            // {
-            //   model: ReflectionQuestion,
-            //   as: "reflectionQuestions",
-            //   where: {
-            //     gameId: Sequelize.col("lmsreflectionquestion.refGameId"),
-            //   },
-            // }
           ],
         },
       ],
     });
 
-    
-    if(!reviewerGame)
-    {
-      return res
-      .status(404)
-      .json({ error: "No data found"});
+    if (!reviewerGame) {
+      return res.status(404).json({ error: "No data found" });
     }
- /** returns game background music */
- const gameBadge = await reviewerGame?.lmsgame?.gameBadge;
- console.log("gameBadge",gameBadge);
- let bgMusic = null;
- if(gameBadge){
- bgMusic = await LmsGameAssets.findByPk(gameBadge,{attributes:['gasAssetImage']});
- }
+    /** returns game background music */
+    const gameBadge = await reviewerGame?.lmsgame?.gameBadge;
+    console.log("gameBadge", gameBadge);
+    let bgMusic = null;
+    if (gameBadge) {
+      bgMusic = await LmsGameAssets.findByPk(gameBadge, {
+        attributes: ["gasAssetImage"],
+      });
+    }
 
-    reviewerGame.lmsgame = { reflectionQuestions: [], ...reviewerGame?.lmsgame};
-    let credential ={
+    reviewerGame.lmsgame = {
+      reflectionQuestions: [],
+      ...reviewerGame?.lmsgame,
+    };
+    let credential = {
       id: reqUuid,
-      name:reviewerGame?.reviewerId,
-      mail:reviewerGame?.lmsgamereviewer?.emailId,
-      role: 'Reviewer'
-    }
+      name: reviewerGame?.reviewerId,
+      mail: reviewerGame?.lmsgamereviewer?.emailId,
+      role: "Reviewer",
+    };
     let token = await generateToken(credential);
     let gameReflectionQuest = [];
     if (reviewerGame) {
@@ -3889,18 +3830,25 @@ const getGameCollections = async (req, res) => {
       });
     }
     /**returns Player characters */
-    const directoryPath = path.join(process.cwd(),'uploads','player');    
+    const directoryPath = path.join(process.cwd(), "uploads", "player");
     const files = await getFilesInDirectory(directoryPath);
-    const filesWithPath = files.map((file)=>{ return  path.join('uploads','player', file)});
-  
+    const filesWithPath = files?.map((file) => {
+      return "uploads/player/"+file;
+    });
+
     return res
       .status(200)
-      .json({ result: reviewerGame, resultReflection: gameReflectionQuest, token:token,playerCharectorsUrl: filesWithPath, bgMusicUrl: bgMusic.gasAssetImage});
+      .json({
+        result: reviewerGame,
+        resultReflection: gameReflectionQuest,
+        token: token,
+        playerCharectorsUrl: filesWithPath,
+        bgMusicUrl: bgMusic?.gasAssetImage,
+      });
   } catch (error) {
     return res.status(400).json({ error: error });
   }
 };
-
 
 const getFilesInDirectory = (directoryPath) => {
   return new Promise((resolve, reject) => {
@@ -3909,16 +3857,20 @@ const getFilesInDirectory = (directoryPath) => {
         // reject(err);
         return err;
       } else {
-        const filteredFiles = files.filter(file => {
+        const filteredFiles = files.filter((file) => {
           const extension = path.extname(file).toLowerCase();
-          return extension === '.png' || extension === '.jpeg' || extension === '.jpg' || extension === '.glb';
+          return (
+            extension === ".png" ||
+            extension === ".jpeg" ||
+            extension === ".jpg" ||
+            extension === ".glb"
+          );
         });
         resolve(filteredFiles);
       }
     });
   });
 };
-
 
 module.exports = {
   uploadIntroMusic,
@@ -3956,5 +3908,4 @@ module.exports = {
   ComplitionUpdate,
   getStoryValidtion,
   getGameCollections,
-
 };

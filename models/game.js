@@ -517,7 +517,13 @@ LmsGame.hasMany(Questionoption, { foreignKey: 'qpGameId' });
 Questionoption.belongsTo(LmsGame, { foreignKey: 'qpGameId' });
 
 
-// LmsGame.hasMany(ReflectionQuestion,{foreignKey: "refGameId"});
+LmsGame.belongsTo(LmsGame, {
+  as: "ExtensionGame", // Alias for the associated game
+  foreignKey: "gameExtensionId", // Foreign key in the current LmsGame instance
+  targetKey: "gameId", // Target key in the associated LmsGame instance
+});
+
+// LmsGame.hasMany(ReflectionQuestion,{foreignKey: "gameId", targetKey: "refGameId"});
 // ReflectionQuestion.belongsTo(LmsGame, {foreignKey: "refGameId"});
 // sequelize
 //   .sync({alter:true}) 

@@ -11,7 +11,7 @@ const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
     allowNull: false,
   },
   refGameId: {
-    type: DataTypes.STRING(200),
+    type: DataTypes.INTEGER(200),
     allowNull: true,
   },	
   refQuestion: {
@@ -73,7 +73,8 @@ const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
   freezeTableName: true,
 });
 
-// ReflectionQuestion.belongsTo(LmsGame,{foreignKey: "refGameId",  as: "gameReflectionQuestion"});
+// ReflectionQuestion.belongsTo(LmsGame,{foreignKey: "refGameId", targetKey: "gameId", as: "gameReflectionQuestion"});
+// ReflectionQuestion.belongsTo(LmsGame, { foreignKey: "refGameId", targetKey: "gameId" });
 // sequelize
 //   .sync()
 //   .then(() => {

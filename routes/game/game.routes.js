@@ -38,6 +38,7 @@ router.get('/getStoryValidtion/:id',getStoryValidtion);
 router.get('/uploadbadge',uploadSettings('badges',fileFilters.imageFilter,'gasAssetImage',storageLocations.badges),uploadBadge);
 router.post('/uploadaudio',uploadSettings('audios',fileFilters.audioFilter,'gasAssetImage',storageLocations.audios),uploadIntroMusic);
 router.get('/tryout/:uuid', getGameCollections);
+// router.get('/tryout/charList', getGameCharacters);
 router.get('/audioTest', (req, res)=>{
     const url = `${req.protocol}://${req.get("host")}/uploads/audios/intromusicone.mp3`;
 //   const audioFilePath = 'uploads/audios/intromusicone.mp3';
@@ -46,6 +47,5 @@ router.get('/audioTest', (req, res)=>{
   res.setHeader('Content-Type', 'audio/mpeg');
   // Send the audio file
   res.status(200).json({status: "success",url:url});
-
 });
 module.exports = router;

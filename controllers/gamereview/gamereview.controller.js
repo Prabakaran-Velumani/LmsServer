@@ -265,8 +265,9 @@ const addGameReviewers = async (req, res) => {
         });
       }
     }
-
-    sendReviewInvitationMails(result);
+    let url =`${req.get("Origin")}/game/demoplay/`;
+    console.log("***url",url)
+    sendReviewInvitationMails(result, url);
 
     return res.status(200).json({
       status: "Success",
@@ -734,7 +735,8 @@ const getGameReviewList = async (req, res) => {
   }
 };
 
-const sendReviewInvitationMails = async (result) => {
+
+const sendReviewInvitationMails = async (result, url) => {
   if (Array.isArray(result) && result?.length > 0) {
     /** Adding the Email ids in the queue to send Emails $$$*/
     result.forEach(async (item) => {
@@ -748,8 +750,7 @@ const sendReviewInvitationMails = async (result) => {
           templateData: {
             gameCreatorName: "gameCreatorName",
             gameUuid: item.gameUuid,
-            gameReviewLink:
-              "http://192.168.1.29:5555/game/tryout/" + item.gameUuid,
+            gameReviewLink:url+item.gameUuid,
             recipientName: "recipientName",
           },
           templateFile: "reviewInvitation",
