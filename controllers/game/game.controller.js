@@ -1,3 +1,4 @@
+const { generateToken } = require("../../lib/authentication/auth");
 const LmsGame = require("../../models/game");
 const { Sequelize, Op } = require("sequelize");
 const CompletionScreen = require("../../models/completionScreen");
@@ -18,6 +19,7 @@ const Reviewes = require("../../models/gameReviews");
 const ReviewersGame = require("../../models/reviewersGame");
 const fs = require("fs");
 const path = require("path");
+const LmsGameAssets = require("../../models/gameAsset");
 // const { gtts } = require('gtts');
 const addGame = async (req, res) => {
   try {
@@ -3856,22 +3858,67 @@ const getGameCollections = async (req, res) => {
         },
       ],
     });
-    reviewerGame.lmsgame = { reflectionQuestions: [], ...reviewerGame.lmsgame };
 
+    
+    if(!reviewerGame)
+    {
+      return res
+      .status(404)
+      .json({ error: "No data found"});
+    }
+ /** returns game background music */
+ const gameBadge = await reviewerGame?.lmsgame?.gameBadge;
+ console.log("gameBadge",gameBadge);
+ let bgMusic = null;
+ if(gameBadge){
+ bgMusic = await LmsGameAssets.findByPk(gameBadge,{attributes:['gasAssetImage']});
+ }
+
+    reviewerGame.lmsgame = { reflectionQuestions: [], ...reviewerGame?.lmsgame};
+    let credential ={
+      id: reqUuid,
+      name:reviewerGame?.reviewerId,
+      mail:reviewerGame?.lmsgamereviewer?.emailId,
+      role: 'Reviewer'
+    }
+    let token = await generateToken(credential);
     let gameReflectionQuest = [];
     if (reviewerGame) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
-        where: { refGameId: { [Op.eq]: reviewerGame.gameId } },
+        where: { refGameId: { [Op.eq]: await reviewerGame.gameId } },
       });
     }
-
+    /**returns Player characters */
+    const directoryPath = path.join(process.cwd(),'uploads','player');    
+    const files = await getFilesInDirectory(directoryPath);
+    const filesWithPath = files.map((file)=>{ return  path.join('uploads','player', file)});
+  
     return res
       .status(200)
-      .json({ result: reviewerGame, resultReflection: gameReflectionQuest });
+      .json({ result: reviewerGame, resultReflection: gameReflectionQuest, token:token,playerCharectorsUrl: filesWithPath, bgMusicUrl: bgMusic.gasAssetImage});
   } catch (error) {
     return res.status(400).json({ error: error });
   }
 };
+
+
+const getFilesInDirectory = (directoryPath) => {
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        // reject(err);
+        return err;
+      } else {
+        const filteredFiles = files.filter(file => {
+          const extension = path.extname(file).toLowerCase();
+          return extension === '.png' || extension === '.jpeg' || extension === '.jpg' || extension === '.glb';
+        });
+        resolve(filteredFiles);
+      }
+    });
+  });
+};
+
 
 module.exports = {
   uploadIntroMusic,
@@ -3909,4 +3956,5 @@ module.exports = {
   ComplitionUpdate,
   getStoryValidtion,
   getGameCollections,
+
 };
