@@ -27,6 +27,7 @@ const geoLocationRoute = require("./lib/geolocation/geolocation");
 const subscription = require("./routes/plansubscription/plansubscription.routes")
 const skillsRoutes = require('./routes/skills/skills.routes')
 const gameReviewRoutes = require('./routes/gamereview/gamereview.routes')
+const scormRoute = require('./routes/scorm/scorm.routes')
 const cron =require("node-cron");
 require("dotenv").config();
 // app.use(cors({origin:process.env.FRONTEND_SERVER}));
@@ -58,7 +59,7 @@ app.use('/planvalidity',planvalidityRoutes);
 app.use('/getLocation',geoLocationRoute);
 app.use('/subscription',subscription)
 app.use('/skills',skillsRoutes);
-
+app.use('/scorm',scormRoute)
 app.listen(process.env.PORT || 5555,'192.168.1.29', (err) => {
   if (err) throw err;
   else console.log(`port ${process.env.PORT || 5555} is Run`);

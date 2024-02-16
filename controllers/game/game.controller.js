@@ -20,6 +20,7 @@ const ReviewersGame = require("../../models/reviewersGame");
 const fs = require("fs");
 const path = require("path");
 const LmsGameAssets = require("../../models/gameAsset");
+const transporter = require("../../lib/mails/mailService")
 // const { gtts } = require('gtts');
 const addGame = async (req, res) => {
   try {
@@ -3758,7 +3759,7 @@ const getGameCollections = async (req, res) => {
                   Sequelize.literal(
                     `CONCAT('${req.protocol}://${req.get(
                       "host"
-                    )}/', gasAssetImage)`
+                    )}/',gasAssetImage)`
                   ),
                   "gasAssetImage",
                 ],
@@ -3798,16 +3799,23 @@ const getGameCollections = async (req, res) => {
         },
       ],
     });
-
+console.log("reviewerGame",reviewerGame);
     if (!reviewerGame) {
       return res.status(404).json({ error: "No data found" });
     }
     /** returns game background music */
-    const gameBadge = await reviewerGame?.lmsgame?.gameBadge;
-    console.log("gameBadge", gameBadge);
+    const gameIntro = await reviewerGame?.lmsgame?.gameIntroMusic;
     let bgMusic = null;
-    if (gameBadge) {
-      bgMusic = await LmsGameAssets.findByPk(gameBadge, {
+    if (gameIntro) {
+      bgMusic = await LmsGameAssets.findByPk(gameIntro, {
+        attributes: ["gasAssetImage"],
+      });
+    }
+    /** returns game Non playing characters url */
+    const gameNPC = await reviewerGame?.lmsgame?.gameNonPlayingCharacterId;
+    let npcUrl = null;
+    if (gameNPC) {
+      npcUrl = await LmsGameAssets.findByPk(gameNPC, {
         attributes: ["gasAssetImage"],
       });
     }
@@ -3842,8 +3850,10 @@ const getGameCollections = async (req, res) => {
         result: reviewerGame,
         resultReflection: gameReflectionQuest,
         token: token,
-        playerCharectorsUrl: filesWithPath,
-        bgMusicUrl: bgMusic?.gasAssetImage,
+        assets:{playerCharectorsUrl: filesWithPath ?? '',
+        bgMusicUrl: bgMusic?.gasAssetImage ?? '',
+        npcUrl: npcUrl?.gasAssetImage ?? ''
+        }
       });
   } catch (error) {
     return res.status(400).json({ error: error });

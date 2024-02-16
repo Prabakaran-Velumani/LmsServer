@@ -509,6 +509,7 @@ const LmsGame = sequelize.define(
           );
 // LmsGame.belongsTo(ReflectionQuestion, { foreignKey: 'gameReflectionQuestion', targetKey: 'refId', as: 'reflectionQuestions' });
 LmsGame.belongsTo(gameAssest, { foreignKey: "gameBackgroundId", as: "image" });
+LmsGame.belongsTo(gameAssest, { foreignKey: "gameNonPlayingCharacterId", as: "npc" });
 LmsGame.belongsTo(gameHistory, { foreignKey: "gameId", as: "gameview" });
 LmsGame.hasMany(LmsBlocks, { foreignKey: 'blockGameId' });
 LmsBlocks.belongsTo(LmsGame, { foreignKey: 'blockGameId' });
