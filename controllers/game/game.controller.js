@@ -20,7 +20,7 @@ const ReviewersGame = require("../../models/reviewersGame");
 const fs = require("fs");
 const path = require("path");
 const LmsGameAssets = require("../../models/gameAsset");
-const transporter = require("../../lib/mails/mailService")
+const transporter = require("../../lib/mails/mailService");
 // const { gtts } = require('gtts');
 const addGame = async (req, res) => {
   try {
@@ -3678,7 +3678,7 @@ WHERE
   blockGameId = 1;
 
    */
-
+/**getGameCollections for review the game */
 const getGameCollections = async (req, res) => {
   const reqUuid = req.params?.uuid;
   try {
@@ -3787,6 +3787,7 @@ const getGameCollections = async (req, res) => {
                   "blockDeviceType",
                 ],
               },
+              where: {blockDeleteStatus: {[Op.eq]: "No"}, blockActiveStatus:{[Op.eq]:"Active"}}
             },
             {
               model: lmsQuestionOptions,
@@ -3794,12 +3795,13 @@ const getGameCollections = async (req, res) => {
               attributes: {
                 exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
               },
+              where: {qpDeleteStatus: "No" , qpActiveStatus:"Yes"}
             },
           ],
         },
       ],
     });
-console.log("reviewerGame",reviewerGame);
+    console.log("reviewerGame", reviewerGame);
     if (!reviewerGame) {
       return res.status(404).json({ error: "No data found" });
     }
@@ -3834,27 +3836,26 @@ console.log("reviewerGame",reviewerGame);
     let gameReflectionQuest = [];
     if (reviewerGame) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
-        where: { refGameId: { [Op.eq]: await reviewerGame.gameId } },
+        where: { refGameId: { [Op.eq]: await reviewerGame.gameId }, refDeleteStatus: 'No', refActiveStatus: 'Yes' },
       });
     }
     /**returns Player characters */
     const directoryPath = path.join(process.cwd(), "uploads", "player");
     const files = await getFilesInDirectory(directoryPath);
     const filesWithPath = files?.map((file) => {
-      return "uploads/player/"+file;
+      return "uploads/player/" + file;
     });
 
-    return res
-      .status(200)
-      .json({
-        result: reviewerGame,
-        resultReflection: gameReflectionQuest,
-        token: token,
-        assets:{playerCharectorsUrl: filesWithPath ?? '',
-        bgMusicUrl: bgMusic?.gasAssetImage ?? '',
-        npcUrl: npcUrl?.gasAssetImage ?? ''
-        }
-      });
+    return res.status(200).json({
+      result: reviewerGame,
+      resultReflection: gameReflectionQuest,
+      token: token,
+      assets: {
+        playerCharectorsUrl: filesWithPath ?? "",
+        bgMusicUrl: bgMusic?.gasAssetImage ?? "",
+        npcUrl: npcUrl?.gasAssetImage ?? "",
+      },
+    });
   } catch (error) {
     return res.status(400).json({ error: error });
   }
@@ -3880,6 +3881,130 @@ const getFilesInDirectory = (directoryPath) => {
       }
     });
   });
+};
+
+/**getGamePreviewCollection for Preview of the game for Creators */
+const getGamePreviewCollection = async (req, res) => {
+  const gamepkId = req.params?.id;
+  try {
+    const GameRecords = await LmsGame.findOne({
+      attributes: {
+        exclude: [
+          "gameIpAddress",
+          "gameUserAgent",
+          "gameDeviceType",
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+        ],
+      },
+      where: { gameId: { [Op.eq]: gamepkId } },
+      include: [
+        {
+          model: gameassest,
+          as: "image",
+          attributes: [
+            "gasId",
+            "gasAssetType",
+            "gasAssetName",
+            "gasStatus",
+            "gasDeleteStatus",
+            [
+              Sequelize.literal(
+                `CONCAT('${req.protocol}://${req.get("host")}/',gasAssetImage)`
+              ),
+              "gasAssetImage",
+            ],
+          ],
+          // required: false,
+        },
+        {
+          model: gameHistory,
+          as: "gameview",
+          attributes: [
+            "gvId",
+            "gvgameId",
+            "gvViewUserId",
+            "createdAt",
+            "updatedAt",
+          ],
+        },
+        {
+          model: LmsBlocks,
+          as: "lmsblocks",
+          attributes: {
+            exclude: ["blockIpAddress", "blockUserAgent", "blockDeviceType"],
+          },
+          where: {blockDeleteStatus: "No", blockActiveStatus:"Active"}
+        },
+        {
+          model: lmsQuestionOptions,
+          as: "lmsquestionsoptions",
+          attributes: {
+            exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
+          },
+          where: {qpDeleteStatus: "No", qpActiveStatus:"Yes"}
+        },
+      ],
+    });
+    console.log("reviewerGame", GameRecords);
+    if (!GameRecords) {
+      return res.status(404).json({ error: "No data found" });
+    }
+    /** returns game background music */
+    const gameIntro = await GameRecords?.gameIntroMusic;
+    let bgMusic = null;
+    if (gameIntro) {
+      bgMusic = await LmsGameAssets.findByPk(gameIntro, {
+        attributes: ["gasAssetImage"],
+      });
+    }
+    /** returns game Non playing characters url */
+    const gameNPC = await GameRecords?.gameNonPlayingCharacterId;
+    let npcUrl = null;
+    if (gameNPC) {
+      npcUrl = await LmsGameAssets.findByPk(gameNPC, {
+        attributes: ["gasAssetImage"],
+      });
+    }
+
+    // GameRecords.lmsgame = {
+    //   reflectionQuestions: [],
+    //   ...GameRecords?.lmsgame,
+    // };
+    // let credential = {
+    //   id: reqUuid,
+    //   name: GameRecords?.reviewerId,
+    //   mail: GameRecords?.lmsgamereviewer?.emailId,
+    //   role: "Reviewer",
+    // };
+    // let token = await generateToken(credential);
+    let gameReflectionQuest = [];
+    if (GameRecords) {
+      gameReflectionQuest = await ReflectionQuestion.findAll({
+        // where: { refGameId: { [Op.eq]: await GameRecords.gameId } },
+        where: { refGameId: { [Op.eq]: await GameRecords.gameId }, refDeleteStatus: 'No', refActiveStatus: 'Yes' },
+      });
+    }
+    /**returns Player characters */
+    const directoryPath = path.join(process.cwd(), "uploads", "player");
+    const files = await getFilesInDirectory(directoryPath);
+    const filesWithPath = files?.map((file) => {
+      return "uploads/player/" + file;
+    });
+
+    return res.status(200).json({
+      result: GameRecords,
+      resultReflection: gameReflectionQuest,
+      assets: {
+        playerCharectorsUrl: filesWithPath ?? "",
+        bgMusicUrl: bgMusic?.gasAssetImage ?? "",
+        npcUrl: npcUrl?.gasAssetImage ?? "",
+      },
+    });
+  } catch (error) {
+    return res.status(400).json({ error: error });
+  }
 };
 
 module.exports = {
@@ -3918,4 +4043,5 @@ module.exports = {
   ComplitionUpdate,
   getStoryValidtion,
   getGameCollections,
+  getGamePreviewCollection,
 };
