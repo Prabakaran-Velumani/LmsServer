@@ -524,6 +524,8 @@ LmsGame.belongsTo(LmsGame, {
   targetKey: "gameId", // Target key in the associated LmsGame instance
 });
 
+LmsGame.hasMany(LmsGame, {as : "gameQuest", foreignKey: "gameExtensionId"})
+
 // LmsGame.hasMany(ReflectionQuestion,{foreignKey: "gameId", targetKey: "refGameId"});
 // ReflectionQuestion.belongsTo(LmsGame, {foreignKey: "refGameId"});
 // sequelize

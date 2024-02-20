@@ -3797,6 +3797,11 @@ const getGameCollections = async (req, res) => {
               },
               where: {qpDeleteStatus: "No" , qpActiveStatus:"Yes"}
             },
+            {
+              model: LmsGame,
+              as: "gameQuest",
+              where: {qpDeleteStatus: "No" , qpActiveStatus:"Yes"}
+            }
           ],
         },
       ],
@@ -3945,9 +3950,13 @@ const getGamePreviewCollection = async (req, res) => {
           },
           where: {qpDeleteStatus: "No", qpActiveStatus:"Yes"}
         },
+        {
+          model: LmsGame,
+          as: "gameQuest",
+        }
       ],
     });
-    console.log("reviewerGame", GameRecords);
+  
     if (!GameRecords) {
       return res.status(404).json({ error: "No data found" });
     }
