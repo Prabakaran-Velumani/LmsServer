@@ -42,11 +42,7 @@ router.get('/creator/demo/:id', getGamePreviewCollection);
 
 router.get('/audioTest', (req, res)=>{
     const url = `${req.protocol}://${req.get("host")}/uploads/audios/intromusicone.mp3`;
-//   const audioFilePath = 'uploads/audios/intromusicone.mp3';
-  // Set the Content-Type header for audio/mpeg
-//   console.log("audioFilePath", audioFilePath);
-  res.setHeader('Content-Type', 'audio/mpeg');
-  // Send the audio file
-  res.status(200).json({status: "success",url:url});
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.status(200).json({status: "success",url:url});
 });
 module.exports = router;
