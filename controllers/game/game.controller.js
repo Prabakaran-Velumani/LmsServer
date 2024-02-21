@@ -3800,7 +3800,7 @@ const getGameCollections = async (req, res) => {
             {
               model: LmsGame,
               as: "gameQuest",
-              where: {qpDeleteStatus: "No" , qpActiveStatus:"Yes"}
+              // where: {gameDeleteStatus: "No" , gameActiveStatus:"Active"}
             }
           ],
         },
