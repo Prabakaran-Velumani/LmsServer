@@ -8,10 +8,7 @@ const LmsBlocks = sequelize.define(
     blockGameId: {
       type: DataTypes.INTEGER(100),
      allowNull: true,
-      // references: {
-      //   model: 'Games', // Assuming you have a Games table
-      //   key: 'gameId'
-      // }
+     
     },
     blockQuestNo:{
       type: DataTypes.INTEGER(100),
@@ -154,6 +151,14 @@ const LmsBlocks = sequelize.define(
   }
 ); 
 LmsBlocks.belongsTo(lmsquestion, { foreignKey: "blockId", targetKey: "qpQuestionId", as: "MaxScore" });
+lmsquestion.belongsTo(LmsBlocks,{foreignKey: "qpQuestionId", targetKey:"blockId", as: "lmsQuestionBlock", scope: {
+  blockDeleteStatus: "No",
+  blockActiveStatus: "Active"
+}})
+LmsBlocks.hasMany(lmsquestion,{ foreignKey: "qpQuestionId", as: "lmsBlockQuestions", scope: {
+  blockDeleteStatus: "No",
+  blockActiveStatus: "Active"
+}})
 // sequelize
 //   .sync()
 //   .then(() => { 

@@ -3,6 +3,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../lib/config/database");
 const game = require("./game");
 const languages = require("./languages");
+const LmsBlocks = require("./blocks");
 
 const lmsGameContentLang = sequelize.define(
             "lmsGameContentLang",
@@ -37,13 +38,18 @@ const lmsGameContentLang = sequelize.define(
                  type: DataTypes.STRING(250),
                  allowNull: false,
               },            
+              audioUrls:
+              {
+                type: DataTypes.STRING(250),
+                allowNull: false,
+              },
              createdAt: {
                 type: DataTypes.DATE,
                 allowNull: false,
                 defaultValue: DataTypes.NOW,              
              },
-              
            },
+           
             {
               tableName: "lmsGameContentLang", // Specify the table name if it differs from the model name
               freezeTableName: true,
@@ -51,5 +57,9 @@ const lmsGameContentLang = sequelize.define(
             }
           );
 //LmsGame.belongsTo(game, { foreignKey: "gameId", as: "image" });
+// In lmsgamecontentlang.js
+// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'textId', targetKey: 'blockId' });
+// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'blockId', as: 'block' });
 
+// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'blockId' });
 module.exports = lmsGameContentLang;

@@ -3837,7 +3837,7 @@ const getGameCollections = async (req, res) => {
       mail: reviewerGame?.lmsgamereviewer?.emailId,
       role: "Reviewer",
     };
-    let token = await generateToken(credential);
+    // let token = await generateToken(credential);
     let gameReflectionQuest = [];
     if (reviewerGame) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
@@ -3854,7 +3854,7 @@ const getGameCollections = async (req, res) => {
     return res.status(200).json({
       result: reviewerGame,
       resultReflection: gameReflectionQuest,
-      token: token,
+      // token: token,
       assets: {
         playerCharectorsUrl: filesWithPath ?? "",
         bgMusicUrl: bgMusic?.gasAssetImage ?? "",

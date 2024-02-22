@@ -21,6 +21,22 @@ const lmsGameChoosenLang = sequelize.define(
                 type: DataTypes.INTEGER,
                 allowNull: false,
               },
+              gameNonPlayerVoice: {
+                type: DataTypes.STRING(250),
+                allowNull: true,
+              },
+              gamePlayerMaleVoice: {
+                type: DataTypes.STRING(250),
+                allowNull: true,
+              },
+              gamePlayerFemaleVoice: {
+                type: DataTypes.STRING(250),
+                allowNull: true,
+              },
+              gameNarratorVoice: {
+                type: DataTypes.STRING(250),
+                allowNull: true,
+              },
              createdAt: {
                 type: DataTypes.DATE,
                 allowNull: false,
@@ -35,5 +51,7 @@ updatedAt: false, // Disable updatedAt
             }
           );
 //LmsGame.belongsTo(game, { foreignKey: "gameId", as: "image" });
+// In lmsGameChoosenLang model file
+lmsGameChoosenLang.belongsTo(languages, { foreignKey: 'translationId' });
 
 module.exports = lmsGameChoosenLang;
