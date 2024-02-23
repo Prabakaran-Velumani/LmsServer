@@ -12,6 +12,10 @@ const { Sequelize, DataTypes, Op } = require("sequelize");
 const { error } = require("console");
 const ReflectionQuestion = require("../../models/reflectionQuestions");
 
+const fsp = require('fs').promises;
+const fs = require('fs');
+const path = require("path");
+
 const getLanguages = async (req, res) => {
   try {
     const data = await LmsLanguages.findAll({
@@ -41,7 +45,7 @@ const getLanguages = async (req, res) => {
 };
 
 const updatelanguages = async (req, res) => {
-  try {
+  // try {
     //const id = req.params.id;
     const data = req.body;
     let lngdata;
@@ -145,16 +149,59 @@ const updatelanguages = async (req, res) => {
                 lngdata.language_name,
                 row.blockText
               );
-              console.log("Updated Content:", updatedContent);
-              if (updatedContent !== "Error") {
-                // if(true)
+              console.log("updatedContent",updatedContent);
+                /** For Text to Audio Convertion */
+                
+                
+                console.log("Updated Content:", updatedContent);
+                if (updatedContent !== "Error") {
+                const apiReqHeaderData = {
+                  text: updatedContent,
+                  model_id: "eleven_multilingual_v2",
+                  voice_settings: {
+                    similarity_boost: .4,
+                    stability: .7,
+                    style: .1,
+                    use_speaker_boost: true,
+                  },
+                };
+                
+                const newLangContentRow ={  gameId: data.gameId,
+                translationId: data.translationId,
+                tblName: "lmsblocks",
+                textId: row.blockId,
+                content: updatedContent,
+                fieldName: "blockText",
+                }
+/**params{
+ * updatedContent-> translated text content 
+ * apiReqHeaderData-> text: updatedContent,
+                  model_id: "eleven_multilingual_v2",
+                  voice_settings: {
+                    similarity_boost: .4,
+                    stability: .7,
+                    style: .1,
+                    use_speaker_boost: true,
+                  },
+ * newLangContentRow  -> {  gameId: data.gameId,
+                  translationId: data.translationId,
+                  tblName: "lmsblocks",
+                  textId: row.blockId,
+                  content: updatedContent,
+                  fieldName: "blockText",
+                  }
+ * lngdata      ->lmsMultipleLanuageSupport table row data
+ * 
+*/
+                const audioUrls = await getConvertedTextToAudioUrls(apiReqHeaderData,newLangContentRow,req.body,lngdata);
                 await lmsGameContentLang.create({
                   gameId: data.gameId,
                   translationId: data.translationId,
                   tblName: "lmsblocks",
                   textId: row.blockId,
                   content: updatedContent,
-                  feildName: "blockText",
+                  fieldName: "blockText",
+                  audioUrls: audioUrls,//can use this data after JSON.parse()
                 });
               } else {
                 res
@@ -397,13 +444,13 @@ const updatelanguages = async (req, res) => {
     //   lngchoosen: data.translationId,
     //   data: data3,
     // });
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error" + error,
-      err: error,
-    });
-  }
+  // } catch (error) {
+  //   res.status(500).json({
+  //     status: "Failure",
+  //     message: "Internal Server Error" + error,
+  //     err: error,
+  //   });
+  // }
 };
 
 // indu
@@ -465,7 +512,7 @@ const getBlockData = async (req, res) => {
     const langData = await lmsGameContentLang.findAll({
       attributes: ["textId", "content"],
       where: {
-        feildName: "blockText",
+        fieldName: "blockText",
         translationId: translationId,
       },
       raw: true,
@@ -510,7 +557,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameTitle",
+        fieldName: "gameTitle",
         textId: gameId,
       },
       raw: true,
@@ -521,7 +568,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameStoryLine",
+        fieldName: "gameStoryLine",
         textId: gameId,
       },
       raw: true,
@@ -532,7 +579,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameNonPlayerName",
+        fieldName: "gameNonPlayerName",
         textId: gameId,
       },
       raw: true,
@@ -541,7 +588,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameCompletedCongratsMessage",
+        fieldName: "gameCompletedCongratsMessage",
         textId: gameId,
       },
       raw: true,
@@ -552,7 +599,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameScreenTitle",
+        fieldName: "gameScreenTitle",
         textId: gameId,
       },
       raw: true,
@@ -618,7 +665,7 @@ const getQuestionOptionsText = async (req, res) => {
       attributes: ["textId", "content"],
       where: {
         translationId: translationId,
-        feildName: "qpOptionText",
+        fieldName: "qpOptionText",
         textId: optionTextData.map((option) => option.qpOptionId),
       },
       raw: true,
@@ -662,7 +709,7 @@ const getQuestionOptions = async (req, res) => {
       attributes: ["textId", "content"],
       where: {
         translationId: translationId,
-        feildName: "qpOptions",
+        fieldName: "qpOptions",
         textId: optionTextData.map((option) => option.qpOptionId),
       },
       raw: true,
@@ -712,7 +759,7 @@ const getQuestionResponse = async (req, res) => {
       attributes: ["textId", "content"],
       where: {
         translationId: translationId,
-        feildName: "qpResponse",
+        fieldName: "qpResponse",
         textId: optionTextData.map((option) => option.qpOptionId),
       },
       raw: true,
@@ -761,7 +808,7 @@ const getQuestionResponse = async (req, res) => {
 //       attributes: ['content'],
 //       where: {
 //         translationId: translationId,
-//         feildName: 'gameStoryLine',
+//         fieldName: 'gameStoryLine',
 //         textId: gameId, // Change this to lmsGameData.gameId if it's the correct foreign key
 //       },
 //       raw: true,
@@ -799,22 +846,67 @@ const createLmsGameContentLang = async (
   translationId,
   tableName,
   id,
-  feildName,
+  fieldName,
   lngdata
 ) => {
   const updatedContent = await translateToAnotherLanguage(
     lngdata.language_name,
     content
   );
+
+  
+  
   if (updatedContent !== "Error") {
-    //  if(true)
+    /** For Text to Audio Convertion */
+    const apiReqHeaderData = {
+      text: updatedContent,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        similarity_boost: .4,
+        stability: .7,
+        style: .1,
+        use_speaker_boost: true,
+      },
+    };
+    
+    const newLangContentRow ={ gameId: gameId,
+    translationId: translationId,
+    tblName: tableName,
+    textId: id, //primary key id of a table
+    content: updatedContent, //text
+    fieldName: fieldName, // text field name
+    }
+/**params{
+* updatedContent-> translated text content 
+* apiReqHeaderData-> text: updatedContent,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        similarity_boost: .4,
+        stability: .7,
+        style: .1,
+        use_speaker_boost: true,
+      },
+* newLangContentRow  -> {  gameId: data.gameId,
+      translationId: data.translationId,
+      tblName: "lmsblocks",
+      textId: row.blockId,
+      content: updatedContent,
+      fieldName: "blockText",
+      }
+* lngdata      ->lmsMultipleLanuageSupport table row data
+* 
+*/
+    const audioUrls = await getConvertedTextToAudioUrls(apiReqHeaderData,newLangContentRow,req.body,lngdata);
+
+
     await lmsGameContentLang.create({
       gameId: gameId,
       translationId: translationId,
       tblName: tableName,
       textId: id,
       content: updatedContent,
-      feildName: feildName,
+      fieldName: fieldName,
+      audioUrls: audioUrls
     });
   } else {
     res.status(500).json({ status: "Failure", message: "Transalation Error" });
@@ -872,9 +964,8 @@ async function translateToAnotherLanguage(lng, content) {
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 const getCreatedLanguages = async (req, res) => {
-  try {
+  // try {
     const getdata = req.body;
-    //console.log(req);
     const condition = {
       where: {
         gameId: getdata.gameId,
@@ -885,21 +976,12 @@ const getCreatedLanguages = async (req, res) => {
         language_name: "English",
       },
     };
-    //console.log("(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
+
     const datalng = await LmsLanguages.findOne(condition2);
-    //console.log(datalng);
-    //console.log(datalng.language_Id)
-    //console.log("(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
+  
     if (datalng.language_Id) {
       const data = await lmsGameChoosenLang.findAll(condition);
-      console.log(
-        "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
-      );
-      console.log(data);
-      console.log(
-        "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
-      );
-
+   
       if (!data || data.length === 0) {
         res.status(200).json({
           status: "Success",
@@ -909,10 +991,7 @@ const getCreatedLanguages = async (req, res) => {
           lngchoosenname: "English",
         });
       } else {
-        //console.log("(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((");
         const data2 = await LmsGame.findOne(condition);
-        //console.log(data2);
-
         if (!data2)
           res.status(200).json({
             status: "Success",
@@ -932,19 +1011,20 @@ const getCreatedLanguages = async (req, res) => {
         }
       }
     }
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "oops! something went wrong" + error,
-      err: error,
-    });
-  }
+  // } catch (error) {
+  //   res.status(500).json({
+  //     status: "Failure",
+  //     message: "oops! something went wrong" + error,
+  //     err: error,
+  //   });
+  // }
 };
 
 // vignesh 10-01-2024 and 12-01-2024
 
 const updateLanguageContent = async (req, res) => {
-  try {
+  const transaction = await sequelize.transaction();
+  // try {
     const condition = {
       where: {
         gameId: req.body.gameId,
@@ -959,7 +1039,7 @@ const updateLanguageContent = async (req, res) => {
           gameId: req.body.gameId,
           tblName: req.body.tblName,
           textId: req.body.textId,
-          feildName: req.body.feildName,
+          fieldName: req.body.fieldName,
           translationId: req.body.translationId,
         },
       });
@@ -980,36 +1060,13 @@ const updateLanguageContent = async (req, res) => {
         lngdata.language_name,
         content
       );
-      /** For Text to Audio Convertion */
-      const dataToConvert = {
-        text: content,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          similarity_boost: 123,
-          stability: 123,
-          style: 123,
-          use_speaker_boost: true,
-        },
-      };
-      const voiceId = await getSpeakerVoiceId(record, data);
-      /** You may get multiple audio files for players when palyer became a speaker of the content like choosed question options & dialog and response, etc.,*/
-      const audioUrlArray = await convertTextToAudio(
-        dataToConvert,
-        voiceId,
-        req.body?.gameId,
-        lngdata?.language_code
-      );
-      /** Write code to store thi into table as sring for receied array ny looping the audioUrlArray*/
-      let filePathString  = "";
-      for (let url of audioUrlArray){
-        filePathString +=url;
-      }
+    
       if (updatedContent !== "Error") {
         const updated = await record.update({
           content: updatedContent,
           audioUrls : filePathString
       });
-
+      
         res.status(200).json({
           status: "Success",
           message: "Data Updated Successfully",
@@ -1026,7 +1083,7 @@ const updateLanguageContent = async (req, res) => {
           gameId: req?.body?.gameId,
           translationId: req?.body?.translationId,
         },
-        { fields: ["gameId", "translationId"] }
+        { fields: ["gameId", "translationId"],  transaction }
       );
 
       if (createdGameChoosenLang) {
@@ -1042,6 +1099,7 @@ const updateLanguageContent = async (req, res) => {
           lngdata.language_name,
           req.body.content
         );
+
         if (updatedContent !== "Error") {
           // if(true)
           const data = await lmsGameContentLang.create({
@@ -1050,9 +1108,12 @@ const updateLanguageContent = async (req, res) => {
             tblName: req.body.tblName,
             textId: req.body.textId,
             content: updatedContent,
-            feildName: req.body.feildName,
+            fieldName: req.body.fieldName,
+            // audioUrls: filePathString
           });
+          await transaction.commit();
           if (!data) {
+            await transaction.rollback();
             return res
               .status(404)
               .json({ status: "Failure", message: "Record not Inserted" });
@@ -1075,13 +1136,13 @@ const updateLanguageContent = async (req, res) => {
         .status(404)
         .json({ status: "Failure", message: "Record not Inserted" });
     }
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error" + error,
-      err: error,
-    });
-  }
+  // } catch (error) {
+  //   res.status(500).json({
+  //     status: "Failure",
+  //     message: "Internal Server Error" + error,
+  //     err: error,
+  //   });
+  // }
 };
 
 const convertTextToAudio = async (
@@ -1104,14 +1165,15 @@ const convertTextToAudio = async (
  */
   try {
     let fileArray = [];
+    let err="";
     for (let voiceId of voiceIds) {
       const send = {
         text: data.text,
         model_id: data?.model_id ?? "eleven_multilingual_v2",
         voice_settings: data?.voice_settings ?? {
-          similarity_boost: 123,
-          stability: 123,
-          style: 123,
+          similarity_boost: .3,
+          stability: 0.6,
+          style: 0,
           use_speaker_boost: true,
         },
       };
@@ -1125,39 +1187,74 @@ const convertTextToAudio = async (
         },
         body: JSON.stringify(send),
       };
+  
+       //uncomment this when API works 
+      // const response = await fetch(
+      //   `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      //   options
+      // );
 
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-        options
-      );
+      // if (response.contentType?.startsWith('audio/')) {
+       
+      // const audioData = await response.blob(); 
+      /**Comment next two lines*/
+      const randomPath = Math.floor(Math.random()*3);
+      const testFiles = ['note.mp3', 'dialogue.mp3', 'interaction.mp3'];
+      const audioFilePath = path.join(__dirname, '..', '..', 'uploads', 'test', testFiles[randomPath]);
+      console.log('audioFilePath',audioFilePath)
+      // Read the audio file
+      if (!fs.existsSync(audioFilePath)) {
+        console.error('Audio file not found:', audioFilePath);
+        return;
+    }
+    else{
+      console.log("Filefound")
+    }
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch audio data");
-      }
-      const audioData = await response.arrayBuffer(); // Get audio data as ArrayBuffer
+    const audioData = await fsp.readFile(audioFilePath);
+      // fs.readFile(audioFilePath, (err, audioData) => {
+        
+      
       const timestamp = Date.now();
-      const randomNum = Math.floor(Math.random() * 900000) + 100000;
-      const filename = `${langCode}_${timestamp}_${randomNum}.mp3`; // Example filename: 1646610500000_6digit number between 100000 to 999999.mp3
+      const filename = `${langCode}_${voiceId}_${timestamp}.mp3`; // Example filename: 1646610500000_6digit number between 100000 to 999999.mp3
 
       // Define the directory where you want to save the audio files
-      const directory = path("uploads", "tta", gameId, langCode); // Adjust the directory path as needed
-
+      // const directory = path("uploads", "tta", gameId, langCode); // Adjust the directory path as needed
+      const directory = path.join(__dirname, '..', '..','uploads', 'tta', gameId, langCode);
+        
+      
+      
       // Ensure the directory exists, create it if it doesn't
-      fs.mkdirSync(directory, { recursive: true });
+      await fsp.mkdir(directory, { recursive: true });
 
       // Write the audio data to the file
       const filePath = path.join(directory, filename);
-      fs.writeFileSync(filePath, audioData);
+      await fsp.writeFile(filePath, audioData);
       fileArray.push({ filename: filename, path: filePath, error: "" });
-    }
-    return fileArray;
+
+      console.log("fileArray", fileArray);
+      /**Uncomment when api works */
+  //   }
+  //   else{
+  //      const errorResponse = await response.json();
+  //      err = errorResponse?.detail;
+  //     console.log ("$$$$ Api Error Message  -- ",errorResponse?.detail);
+  // }
+  }
+    return {status: fileArray.length > 0 ? "Success" : "Failure" , data : fileArray, error :err };
+
   } catch (error) {
-    console.error("Error:", error);
-    return { filename: filename, path: filePath, error: error?.message };
+    return {status: "Failure", error : error };
   }
 };
 
-const getSpeakerVoiceId = async (record, selectedlangOptions) => {
+const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions ) => {
+  /**selectedlangOptions  => req.body
+   * lmsgamecontentlang => lmsgamecontentlang row data 
+   * 
+  */
+  console.log("$$$$$$lmsgamecontentlang", lmsgamecontentlang)
+  console.log("$$$$$$selectedlangOptions", selectedlangOptions)
   /*** Hint****
    * selectedlangOptions Object as
    * {gamecontentId: id,
@@ -1166,7 +1263,7 @@ const getSpeakerVoiceId = async (record, selectedlangOptions) => {
    *  tblName: string,
    *  textId: id,
    *  content : string,
-   *  feildName : string
+   *  fieldName : string
    */
 
   const voiceIds = {
@@ -1176,24 +1273,24 @@ const getSpeakerVoiceId = async (record, selectedlangOptions) => {
     femalePlayer: null,
   };
 
-  if (record) {
-    switch (record?.tblName) {
+  if (lmsgamecontentlang) {
+    switch (lmsgamecontentlang?.tblName) {
       case "lmsgame":
         voiceIds.narrator = selectedlangOptions.gameNarratorVoice;
         return voiceIds;
       case "lmsblocks":
-        const currentBlock = await LmsBlocks.findByPk(record?.textId, {
+        const currentBlock = await LmsBlocks.findByPk(lmsgamecontentlang?.textId, {
           attributes: ["blockRoll"],
         });
         return await getMappedVoice(currentBlock, selectedlangOptions);
       case "lmsquestionsoption":
-        if (record.feildName == "qpFeedback") {
+        if (lmsgamecontentlang.fieldName == "qpFeedback") {
           voiceIds.malePlayer = selectedlangOptions?.gamePlayerMaleVoice;
           voiceIds.femalePlayer = selectedlangOptions?.gamePlayerFemaleVoice;
         }
-        if (record.feildName == "qpOptions" || record.feildName == "qpOptionText") {
+        if (lmsgamecontentlang.fieldName == "qpOptions" || lmsgamecontentlang.fieldName == "qpOptionText") {
           const currentQuestionOptionBlock = await lmsQuestionsOption.findByPk(
-            record?.textId,
+            lmsgamecontentlang?.textId,
             {
               attributes: ["qpQuestionId"],
               include: {
@@ -1211,7 +1308,7 @@ const getSpeakerVoiceId = async (record, selectedlangOptions) => {
           result.femalePlayer = selectedlangOptions?.gamePlayerFemaleVoice;
           return result;
         }
-        if (record.feildName =="qpResponse") {
+        if (lmsgamecontentlang.fieldName =="qpResponse") {
           const currentQuestionOptionBlock = await lmsQuestionsOption.findByPk(
             record?.textId,
             {
@@ -1264,6 +1361,52 @@ const getMappedVoice = async (row, selectedlangOptions) => {
   return voiceId;
 };
 
+
+const getConvertedTextToAudioUrls=async(apiReqHeaderData,newLangContentRow, reqBody, langRowData )=>{
+
+  /**params{
+ * updatedContent-> translated text content 
+ * apiReqHeaderData-> text: updatedContent,
+                  model_id: "eleven_multilingual_v2",
+                  voice_settings: {
+                    similarity_boost: .4,
+                    stability: .7,
+                    style: .1,
+                    use_speaker_boost: true,
+                  },
+ * newLangContentRow  -> {gameId: data.gameId,
+                  translationId: data.translationId,
+                  tblName: "lmsblocks",
+                  textId: row.blockId,
+                  content: updatedContent,
+                  fieldName: "blockText",
+                  }
+  * reqBody  -> req.body
+ * langRowData      ->lmsMultipleLanuageSupport table row data
+ * 
+*/
+
+const voiceId = await getSpeakerVoiceId(newLangContentRow, newLangContentRow);
+/** You may get multiple audio files for players when palyer became a speaker of the content like choosed question options & dialog and response, etc.,*/
+const audioUrlArray = await convertTextToAudio(
+  apiReqHeaderData,
+  voiceId,
+  reqBody?.gameId,
+  langRowData?.language_code
+);
+/** Write code to store thi into table as sring for receied array ny looping the audioUrlArray*/
+let jsonObjectArray = [];
+for (let data of audioUrlArray.data){
+  
+  let voiceId = data.filename.split('_')[1];
+  /** filename: 'ta_D38z5RcWu1voky8WS1ja_1708683731564.mp3'
+   *             langCode_VoiceId_timestamp.format
+                   0        1        2
+  */
+  jsonObjectArray.push({'voiceId': voiceId, audioUrl: data?.path})
+}             
+  return JSON.stringify(jsonObjectArray);
+}
 module.exports = {
   getLanguages,
   updatelanguages,

@@ -673,9 +673,7 @@ const getBlocks = async (req, res) => {
         },
       },
     });
-    console.log("(((((((((((((((((((((((((((((((((((");
-    console.log(count);
-
+    
     if (count === 0) {
       return res
         .status(404)
@@ -839,8 +837,7 @@ const gameDuplicate = async (req, res) => {
             },
           }
         );
-        // console.log('setExtenstion',setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
+
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -1031,8 +1028,6 @@ const gamePublic = async (req, res) => {
             },
           }
         );
-        // console.log('setExtenstion',setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -1808,7 +1803,6 @@ const StroyInserting = async (req, res) => {
                 qpQuestionId: Exitist.blockId,
               },
             });
-            console.log("deleteOption", deleteOption);
             const result = await LmsBlocks.update(
               {
                 blockGameId: id,
@@ -1885,7 +1879,6 @@ const StroyInserting = async (req, res) => {
                 qpQuestionId: Exitist.blockId,
               },
             });
-            // console.log('deleteOption',deleteOption)
 
             const result = await LmsBlocks.update(
               {
@@ -2083,13 +2076,6 @@ const StroyInserting = async (req, res) => {
                       qpDeleteStatus: "NO",
                     },
                   });
-
-                  console.log("Item Input:", item.input);
-                  console.log("Object Secondary ID:", object.secondaryId);
-                  console.log("Key:", key);
-                  console.log("OptionExitist:", OptionExitist);
-
-                  console.log("OptionExitist:", OptionExitist);
 
                   let options = "";
                   if (OptionExitist) {
@@ -2492,8 +2478,6 @@ const GetStroy = async (req, res) => {
             order: [["qpSecondaryId", "ASC"]],
           });
 
-          console.log("Question", Question);
-          // return res.status(500).json({ status: 'Failure' ,error:result.blockId });
           for (let [i, rows] of Question.entries()) {
             // Use for...of loop or Promise.all to handle async/await correctly
             let value = {
@@ -2563,7 +2547,6 @@ const GetStroy = async (req, res) => {
                 result.blockSecondaryId;
             }
           }
-          console.log("Final array:", optionsemotionObject);
 
           pushoption.push(optionsObject);
           // return res.status(500).json({ status: 'Failure' ,error:scoreObject });
@@ -2853,8 +2836,6 @@ const exitTemplateOpen = async (req, res) => {
             },
           }
         );
-        // console.log('setExtenstion',setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -3627,7 +3608,6 @@ const ComplitionUpdate = async (req, res) => {
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         const value = data[key];
-        console.log("value", value);
         value.gameTotalScore = value.gameTotalScore.maxScore;
         const { gameQuestNo, ...updateValues } = value;
         const updateResult = await LmsGame.update(updateValues, {
@@ -3806,7 +3786,6 @@ const getGameCollections = async (req, res) => {
         },
       ],
     });
-    console.log("reviewerGame", reviewerGame);
     if (!reviewerGame) {
       return res.status(404).json({ error: "No data found" });
     }

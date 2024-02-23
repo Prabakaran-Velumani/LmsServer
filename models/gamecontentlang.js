@@ -26,7 +26,7 @@ const lmsGameContentLang = sequelize.define(
                  type: DataTypes.STRING(100),
                 allowNull: false,
               },
-              feildName:{
+              fieldName:{
                 type: DataTypes.STRING(50),
                 allowNull: false,
               },
