@@ -1,6 +1,6 @@
 const express = require('express');
 const {getLanguages,updatelanguages,getCreatedLanguages,updateLanguageContent,getSelectedLanguages,getBlockData,getGameStoryLine,getQuestionOptions,getQuestionOptionsText,
-    getQuestionResponse} = require('../../controllers/languages/languages.controller');
+    getQuestionResponse, deleteAudioFiles} = require('../../controllers/languages/languages.controller');
 const router = express.Router();
 
 
@@ -17,5 +17,6 @@ router.post('/getcreatedlanguages',getCreatedLanguages);
 router.post('/updatelanguages',updatelanguages);
 // vignesh 10-01-24
 router.post('/updatecontent',updateLanguageContent);
+// router.post('/deleteContent',deleteAudioFiles); //to test the delete audio file
 
 module.exports = router;

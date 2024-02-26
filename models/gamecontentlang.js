@@ -40,7 +40,7 @@ const lmsGameContentLang = sequelize.define(
               },            
               audioUrls:
               {
-                type: DataTypes.STRING(250),
+                type: DataTypes.TEXT,
                 allowNull: false,
               },
              createdAt: {

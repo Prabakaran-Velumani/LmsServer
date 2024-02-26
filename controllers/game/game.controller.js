@@ -3995,6 +3995,36 @@ const getGamePreviewCollection = async (req, res) => {
   }
 };
 
+const getMaxBlockQuestNo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const gameId = req.params.id;
+    const blockDeleteStatus = 'No';
+
+    const result = await LmsBlocks.max('blockQuestno', {
+      where: {
+        blockGameId: gameId,
+        blockDeleteStatus: blockDeleteStatus,
+      },
+    });
+
+    const maxBlockQuestNo = result || 0; // Handle the case where result is null
+
+    res.status(200).json({
+      status: 'Success',
+      message: 'Data Retrieved Successfully',
+      data: { maxBlockQuestNo },
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'An error occurred while processing the request. Check the server logs for more details.',
+      err: error,
+    });
+  }
+};
+
 module.exports = {
   uploadIntroMusic,
   uploadBadge,
@@ -4032,4 +4062,5 @@ module.exports = {
   getStoryValidtion,
   getGameCollections,
   getGamePreviewCollection,
+  getMaxBlockQuestNo,
 };

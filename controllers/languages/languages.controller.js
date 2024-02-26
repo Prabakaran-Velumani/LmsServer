@@ -12,8 +12,8 @@ const { Sequelize, DataTypes, Op } = require("sequelize");
 const { error } = require("console");
 const ReflectionQuestion = require("../../models/reflectionQuestions");
 
-const fsp = require('fs').promises;
-const fs = require('fs');
+const fsp = require("fs").promises;
+const fs = require("fs");
 const path = require("path");
 
 const getLanguages = async (req, res) => {
@@ -45,135 +45,135 @@ const getLanguages = async (req, res) => {
 };
 
 const updatelanguages = async (req, res) => {
-  // try {
-    //const id = req.params.id;
-    const data = req.body;
-    let lngdata;
-    let data3;
-    const condition2 = {
+  try {
+  //const id = req.params.id;
+  const data = req.body;
+  let lngdata;
+  let data3;
+  const condition2 = {
+    where: {
+      gameId: data.gameId,
+    },
+  };
+  data3 = await lmsGameChoosenLang.findAll(condition2);
+
+  const record = await LmsGame.findByPk(data.gameId);
+  if (!record) {
+    return res
+      .status(404)
+      .json({ status: "Failure", message: "Record not found" });
+  }
+  const condition3 = {
+    where: {
+      language_Id: data.translationId,
+    },
+  };
+
+  lngdata = await LmsLanguages.findOne(condition3);
+
+  const updatedRecord = await record.update({
+    gameLanguageId: data.translationId,
+  });
+  //const updatedRecord = await record.update(data);
+  if (updatedRecord) {
+    // Insert values into the "gamechoosenlang" table
+    const {
+      gameId,
+      translationId,
+      gameNonPlayerVoice,
+      gamePlayerMaleVoice,
+      gamePlayerFemaleVoice,
+      gameNarratorVoice,
+    } = data; // Assuming these fields are available in req.body
+    const condition4 = {
       where: {
-        gameId: data.gameId,
+        gameId: gameId,
+        translationId: translationId,
+        // gameNonPlayerVoice:gameNonPlayerVoice,
+        // gamePlayerMaleVoice:gamePlayerMaleVoice,
+        // gamePlayerFemaleVoice:gamePlayerFemaleVoice,
+        // gameNarratorVoice:gameNarratorVoice,
       },
     };
-    data3 = await lmsGameChoosenLang.findAll(condition2);
 
-    const record = await LmsGame.findByPk(data.gameId);
-    if (!record) {
-      return res
-        .status(404)
-        .json({ status: "Failure", message: "Record not found" });
-    }
-    const condition3 = {
-      where: {
-        language_Id: data.translationId,
-      },
-    };
-
-    lngdata = await LmsLanguages.findOne(condition3);
-
-    const updatedRecord = await record.update({
-      gameLanguageId: data.translationId,
-    });
-    //const updatedRecord = await record.update(data);
-    if (updatedRecord) {
-      // Insert values into the "gamechoosenlang" table
-      const {
-        gameId,
-        translationId,
-        gameNonPlayerVoice,
-        gamePlayerMaleVoice,
-        gamePlayerFemaleVoice,
-        gameNarratorVoice,
-      } = data; // Assuming these fields are available in req.body
-      const condition4 = {
-        where: {
+    const checkexist = await lmsGameChoosenLang.findOne(condition4);
+    // console.log(checkexist);
+    if (!checkexist) {
+      const createdGameChoosenLang = await lmsGameChoosenLang.create(
+        {
           gameId: gameId,
           translationId: translationId,
-          // gameNonPlayerVoice:gameNonPlayerVoice,
-          // gamePlayerMaleVoice:gamePlayerMaleVoice,
-          // gamePlayerFemaleVoice:gamePlayerFemaleVoice,
-          // gameNarratorVoice:gameNarratorVoice,
+          gameNonPlayerVoice: gameNonPlayerVoice,
+          gamePlayerMaleVoice: gamePlayerMaleVoice,
+          gamePlayerFemaleVoice: gamePlayerFemaleVoice,
+          gameNarratorVoice: gameNarratorVoice,
         },
-      };
+        {
+          fields: [
+            "gameId",
+            "translationId",
+            "gameNonPlayerVoice",
+            "gamePlayerMaleVoice",
+            "gamePlayerFemaleVoice",
+            "gameNarratorVoice",
+          ],
+        }
+      );
 
-      const checkexist = await lmsGameChoosenLang.findOne(condition4);
-      // console.log(checkexist);
-      if (!checkexist) {
-        const createdGameChoosenLang = await lmsGameChoosenLang.create(
-          {
-            gameId: gameId,
-            translationId: translationId,
-            gameNonPlayerVoice: gameNonPlayerVoice,
-            gamePlayerMaleVoice: gamePlayerMaleVoice,
-            gamePlayerFemaleVoice: gamePlayerFemaleVoice,
-            gameNarratorVoice: gameNarratorVoice,
+      if (createdGameChoosenLang) {
+        const condition = {
+          where: {
+            blockGameId: gameId,
           },
-          {
-            fields: [
-              "gameId",
-              "translationId",
-              "gameNonPlayerVoice",
-              "gamePlayerMaleVoice",
-              "gamePlayerFemaleVoice",
-              "gameNarratorVoice",
-            ],
-          }
-        );
+        };
+        // *
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //let tblname=data.tblname;
+        ////////////////////////////////////////////////////////////BLOCKS/////////////////////////////////////////////////////////////////////////
+        // *
+        let content;
+        console.log("______________________________________________________");
+        data3 = await lmsGameChoosenLang.findAll(condition2);
 
-        if (createdGameChoosenLang) {
-          const condition = {
-            where: {
-              blockGameId: gameId,
-            },
-          };
-          // *
-          ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          //let tblname=data.tblname;
-          ////////////////////////////////////////////////////////////BLOCKS/////////////////////////////////////////////////////////////////////////
-          // *
-          let content;
-          console.log("______________________________________________________");
-          data3 = await lmsGameChoosenLang.findAll(condition2);
+        const rows = await LmsBlocks.findAll(condition);
+        if (!rows || rows.length === 0) {
+          // return res
+          //   .status(404)
+          //   .json({ status: "Failure", message: "Records not found" });
+          console.log("Records not found in LmsBlocks");
+        } else {
+          console.log(rows.length);
+          for (const row of rows) {
+            console.log(row);
+            const updatedContent = await translateToAnotherLanguage(
+              lngdata.language_name,
+              row.blockText
+            );
+            console.log("updatedContent", updatedContent);
+            /** For Text to Audio Convertion */
 
-          const rows = await LmsBlocks.findAll(condition);
-          if (!rows || rows.length === 0) {
-            // return res
-            //   .status(404)
-            //   .json({ status: "Failure", message: "Records not found" });
-            console.log("Records not found in LmsBlocks");
-          } else {
-            console.log(rows.length);
-            for (const row of rows) {
-              console.log(row);
-              const updatedContent = await translateToAnotherLanguage(
-                lngdata.language_name,
-                row.blockText
-              );
-              console.log("updatedContent",updatedContent);
-                /** For Text to Audio Convertion */
-                
-                
-                console.log("Updated Content:", updatedContent);
-                if (updatedContent !== "Error") {
-                const apiReqHeaderData = {
-                  text: updatedContent,
-                  model_id: "eleven_multilingual_v2",
-                  voice_settings: {
-                    similarity_boost: .4,
-                    stability: .7,
-                    style: .1,
-                    use_speaker_boost: true,
-                  },
-                };
-                
-                const newLangContentRow ={  gameId: data.gameId,
+            console.log("Updated Content:", updatedContent);
+            if (updatedContent !== "Error") {
+              const apiReqHeaderData = {
+                text: updatedContent,
+                model_id: "eleven_multilingual_v2",
+                voice_settings: {
+                  similarity_boost: 0.4,
+                  stability: 0.7,
+                  style: 0.1,
+                  use_speaker_boost: true,
+                },
+              };
+
+              const newLangContentRow = {
+                gameId: data.gameId,
                 translationId: data.translationId,
                 tblName: "lmsblocks",
                 textId: row.blockId,
                 content: updatedContent,
                 fieldName: "blockText",
-                }
-/**params{
+              };
+              /**params{
  * updatedContent-> translated text content 
  * apiReqHeaderData-> text: updatedContent,
                   model_id: "eleven_multilingual_v2",
@@ -193,264 +193,269 @@ const updatelanguages = async (req, res) => {
  * lngdata      ->lmsMultipleLanuageSupport table row data
  * 
 */
-                const audioUrls = await getConvertedTextToAudioUrls(apiReqHeaderData,newLangContentRow,req.body,lngdata);
-                await lmsGameContentLang.create({
-                  gameId: data.gameId,
-                  translationId: data.translationId,
-                  tblName: "lmsblocks",
-                  textId: row.blockId,
-                  content: updatedContent,
-                  fieldName: "blockText",
-                  audioUrls: audioUrls,//can use this data after JSON.parse()
-                });
-              } else {
-                res
-                  .status(500)
-                  .json({ status: "Failure", message: "Transalation Error" });
-              }
-            }
-          }
-          // *
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          //vignesh COMPLETIONSCREEN 09-01-2024
-
-          const condition3 = {
-            where: {
-              csGameId: gameId,
-            },
-          };
-
-          const rows2 = await lmsCompletionScreen.findAll(condition3);
-
-          if (!rows2 || rows2.length === 0) {
-            // return res
-            //   .status(404)
-            //   .json({ status: "Failure", message: "Records not found" });
-            console.log("Records not found in lmsCompletionScreen");
-          } else {
-            for (const row of rows2) {
-              await createLmsGameContentLang(
-                req,
-                res,
-                row?.dataValues?.csWishMessage,
-                data?.gameId,
-                data?.translationId,
-                "lmscompletionscreen",
-                row?.dataValues?.csId,
-                "csWishMessage",
+              const audioUrls = await getConvertedTextToAudioUrls(
+                apiReqHeaderData,
+                newLangContentRow,
+                req.body,
                 lngdata
               );
+              await lmsGameContentLang.create({
+                gameId: data.gameId,
+                translationId: data.translationId,
+                tblName: "lmsblocks",
+                textId: row.blockId,
+                content: updatedContent,
+                fieldName: "blockText",
+                audioUrls: audioUrls, //can use this data after JSON.parse()
+              });
+            } else {
+              res
+                .status(500)
+                .json({ status: "Failure", message: "Transalation Error" });
             }
           }
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          //vignesh LMSQUESTIONOPTIONS 10-01-2024
-          const condition4 = {
-            where: {
-              qpGameId: gameId,
-            },
-          };
-
-          const rows3 = await lmsQuestionsOption.findAll(condition4);
-
-          if (!rows3 || rows3.length === 0) {
-            // return res
-            //   .status(404)
-            //   .json({ status: "Failure", message: "Records not found" });
-            console.log("Records not found in lmsQuestionsOption");
-          } else {
-            for (const row of rows3) {
-              if (row?.dataValues) {
-                if (row?.dataValues?.hasOwnProperty("qpOptionText")) {
-                  await createLmsGameContentLang(
-                    req,
-                    res,
-                    row.dataValues?.qpOptionText,
-                    data?.gameId,
-                    data?.translationId,
-                    "lmsquestionsoption",
-                    row?.qpOptionId,
-                    "qpOptionText",
-                    lngdata
-                  );
-                }
-
-                if (row?.dataValues?.hasOwnProperty("qpOptions")) {
-                  await createLmsGameContentLang(
-                    req,
-                    res,
-                    row.dataValues?.qpOptions,
-                    data?.gameId,
-                    data?.translationId,
-                    "lmsquestionsoption",
-                    row?.qpOptionId,
-                    "qpOptions",
-                    lngdata
-                  );
-                }
-
-                if (row?.dataValues?.hasOwnProperty("qpResponse")) {
-                  await createLmsGameContentLang(
-                    req,
-                    res,
-                    row.dataValues?.qpResponse,
-                    data?.gameId,
-                    data?.translationId,
-                    "lmsquestionsoption",
-                    row?.qpOptionId,
-                    "qpResponse",
-                    lngdata
-                  );
-                }
-              }
-            }
-          }
-          ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          //vignesh LMSGame 10-01-2024
-          const condition5 = {
-            where: {
-              gameId: gameId,
-            },
-          };
-
-          const gameKeys = [
-            "gameNonPlayerName",
-            "gameCharacterName",
-            "gameTitle",
-            "gameStoryLine",
-            "gameLearningOutcome",
-            "gameAuthorName",
-            "gameTakeawayContent",
-            "gameAdditionalWelcomeNote",
-            "gameThankYouMessage",
-            "gameBadgeName",
-            "gameScreenTitle",
-            "gameCompletedCongratsMessage",
-            "gameMinimumScoreCongratsMessage",
-            "gameLessthanDistinctionScoreCongratsMessage",
-            "gameAboveDistinctionScoreCongratsMessage",
-            "gameSummarizes",
-            "gamWelcomePageText",
-            "gameThankYouPage",
-            "gameQuestionValue1",
-            "gameQuestionValue2",
-            "gameQuestionValue3",
-            "gameQuestionValue4",
-          ];
-
-          const rows4 = await LmsGame.findAll(condition5);
-          if (!rows4 || rows4.length === 0) {
-            // return res
-            //   .status(404)
-            //   .json({ status: "Failure", message: "Records not found" });
-            console.log("Records not found in LmsGame");
-          } else {
-            for (const row of rows4) {
-              //  const id = row?.dataValues?.gameId;
-              //  console.log("id:",id);
-              for (const key of gameKeys) {
-                if (row?.dataValues.hasOwnProperty(key)) {
-                  const content = row?.dataValues[key];
-
-                  if (
-                    content === null ||
-                    content === undefined ||
-                    content === ""
-                  ) {
-                    console.log(`${key} is null or empty. Skipping.`);
-                    continue;
-                  }
-                  await createLmsGameContentLang(
-                    req,
-                    res,
-                    content,
-                    data?.gameId,
-                    data?.translationId,
-                    "lmsgame",
-                    data?.gameId,
-                    key,
-                    lngdata
-                  );
-                } else {
-                  console.log(`${key} does not exist in the dataValues object`);
-                }
-              }
-            }
-          }
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          //vignesh lmsreflectionquestion 10-01-2024
-          const condition6 = {
-            where: {
-              refGameId: gameId,
-            },
-          };
-          const rows5 = await lmsreflectionquestion.findAll(condition6);
-          if (!rows5 || rows5.length === 0) {
-            // return res
-            //   .status(404)
-            //   .json({ status: "Failure", message: "Records not found" });
-            console.log("Records not found in lmsreflectionquestion");
-          } else {
-            for (const row of rows5) {
-              await createLmsGameContentLang(
-                req,
-                res,
-                row?.dataValues?.refQuestion,
-                data?.gameId,
-                data?.translationId,
-                "lmsreflectionquestion",
-                row?.dataValues.refId,
-                "refQuestion",
-                lngdata
-              );
-            }
-          }
-          ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
-      } else {
-        const updatedGameChoosenLang = await lmsGameChoosenLang.update(
-          {
-            gameNonPlayerVoice: gameNonPlayerVoice,
-            gamePlayerMaleVoice: gamePlayerMaleVoice,
-            gamePlayerFemaleVoice: gamePlayerFemaleVoice,
-            gameNarratorVoice: gameNarratorVoice,
+        // *
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //vignesh COMPLETIONSCREEN 09-01-2024
+
+        const condition3 = {
+          where: {
+            csGameId: gameId,
           },
-          {
-            where: {
-              gameId: gameId,
-              translationId: translationId,
-            },
-            fields: [
-              "gameNonPlayerVoice",
-              "gamePlayerMaleVoice",
-              "gamePlayerFemaleVoice",
-              "gameNarratorVoice",
-            ],
+        };
+
+        const rows2 = await lmsCompletionScreen.findAll(condition3);
+
+        if (!rows2 || rows2.length === 0) {
+          // return res
+          //   .status(404)
+          //   .json({ status: "Failure", message: "Records not found" });
+          console.log("Records not found in lmsCompletionScreen");
+        } else {
+          for (const row of rows2) {
+            await createLmsGameContentLang(
+              req,
+              res,
+              row?.dataValues?.csWishMessage,
+              data?.gameId,
+              data?.translationId,
+              "lmscompletionscreen",
+              row?.dataValues?.csId,
+              "csWishMessage",
+              lngdata
+            );
           }
-        );
-        data3 = await lmsGameChoosenLang.findAll(condition2);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //vignesh LMSQUESTIONOPTIONS 10-01-2024
+        const condition4 = {
+          where: {
+            qpGameId: gameId,
+          },
+        };
+
+        const rows3 = await lmsQuestionsOption.findAll(condition4);
+
+        if (!rows3 || rows3.length === 0) {
+          // return res
+          //   .status(404)
+          //   .json({ status: "Failure", message: "Records not found" });
+          console.log("Records not found in lmsQuestionsOption");
+        } else {
+          for (const row of rows3) {
+            if (row?.dataValues) {
+              if (row?.dataValues?.hasOwnProperty("qpOptionText")) {
+                await createLmsGameContentLang(
+                  req,
+                  res,
+                  row.dataValues?.qpOptionText,
+                  data?.gameId,
+                  data?.translationId,
+                  "lmsquestionsoption",
+                  row?.qpOptionId,
+                  "qpOptionText",
+                  lngdata
+                );
+              }
+
+              if (row?.dataValues?.hasOwnProperty("qpOptions")) {
+                await createLmsGameContentLang(
+                  req,
+                  res,
+                  row.dataValues?.qpOptions,
+                  data?.gameId,
+                  data?.translationId,
+                  "lmsquestionsoption",
+                  row?.qpOptionId,
+                  "qpOptions",
+                  lngdata
+                );
+              }
+
+              if (row?.dataValues?.hasOwnProperty("qpResponse")) {
+                await createLmsGameContentLang(
+                  req,
+                  res,
+                  row.dataValues?.qpResponse,
+                  data?.gameId,
+                  data?.translationId,
+                  "lmsquestionsoption",
+                  row?.qpOptionId,
+                  "qpResponse",
+                  lngdata
+                );
+              }
+            }
+          }
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //vignesh LMSGame 10-01-2024
+        const condition5 = {
+          where: {
+            gameId: gameId,
+          },
+        };
+
+        const gameKeys = [
+          "gameNonPlayerName",
+          "gameCharacterName",
+          "gameTitle",
+          "gameStoryLine",
+          "gameLearningOutcome",
+          "gameAuthorName",
+          "gameTakeawayContent",
+          "gameAdditionalWelcomeNote",
+          "gameThankYouMessage",
+          "gameBadgeName",
+          "gameScreenTitle",
+          "gameCompletedCongratsMessage",
+          "gameMinimumScoreCongratsMessage",
+          "gameLessthanDistinctionScoreCongratsMessage",
+          "gameAboveDistinctionScoreCongratsMessage",
+          "gameSummarizes",
+          "gamWelcomePageText",
+          "gameThankYouPage",
+          "gameQuestionValue1",
+          "gameQuestionValue2",
+          "gameQuestionValue3",
+          "gameQuestionValue4",
+        ];
+
+        const rows4 = await LmsGame.findAll(condition5);
+        if (!rows4 || rows4.length === 0) {
+          // return res
+          //   .status(404)
+          //   .json({ status: "Failure", message: "Records not found" });
+          console.log("Records not found in LmsGame");
+        } else {
+          for (const row of rows4) {
+            //  const id = row?.dataValues?.gameId;
+            //  console.log("id:",id);
+            for (const key of gameKeys) {
+              if (row?.dataValues.hasOwnProperty(key)) {
+                const content = row?.dataValues[key];
+
+                if (
+                  content === null ||
+                  content === undefined ||
+                  content === ""
+                ) {
+                  console.log(`${key} is null or empty. Skipping.`);
+                  continue;
+                }
+                await createLmsGameContentLang(
+                  req,
+                  res,
+                  content,
+                  data?.gameId,
+                  data?.translationId,
+                  "lmsgame",
+                  data?.gameId,
+                  key,
+                  lngdata
+                );
+              } else {
+                console.log(`${key} does not exist in the dataValues object`);
+              }
+            }
+          }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //vignesh lmsreflectionquestion 10-01-2024
+        const condition6 = {
+          where: {
+            refGameId: gameId,
+          },
+        };
+        const rows5 = await lmsreflectionquestion.findAll(condition6);
+        if (!rows5 || rows5.length === 0) {
+          // return res
+          //   .status(404)
+          //   .json({ status: "Failure", message: "Records not found" });
+          console.log("Records not found in lmsreflectionquestion");
+        } else {
+          for (const row of rows5) {
+            await createLmsGameContentLang(
+              req,
+              res,
+              row?.dataValues?.refQuestion,
+              data?.gameId,
+              data?.translationId,
+              "lmsreflectionquestion",
+              row?.dataValues.refId,
+              "refQuestion",
+              lngdata
+            );
+          }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       }
-      return res.status(200).json({
-        status: "Success",
-        message: "Data Updated Successfully",
-        gamedata: updatedRecord,
-        lngchoosen: data.translationId,
-        data: data3,
-        data2: lngdata,
-      });
+    } else {
+      const updatedGameChoosenLang = await lmsGameChoosenLang.update(
+        {
+          gameNonPlayerVoice: gameNonPlayerVoice,
+          gamePlayerMaleVoice: gamePlayerMaleVoice,
+          gamePlayerFemaleVoice: gamePlayerFemaleVoice,
+          gameNarratorVoice: gameNarratorVoice,
+        },
+        {
+          where: {
+            gameId: gameId,
+            translationId: translationId,
+          },
+          fields: [
+            "gameNonPlayerVoice",
+            "gamePlayerMaleVoice",
+            "gamePlayerFemaleVoice",
+            "gameNarratorVoice",
+          ],
+        }
+      );
+      data3 = await lmsGameChoosenLang.findAll(condition2);
     }
-    // return res.status(200).json({
-    //   status: "AlreadyExist",
-    //   message: "Already exists",
-    //   lngchoosen: data.translationId,
-    //   data: data3,
-    // });
-  // } catch (error) {
-  //   res.status(500).json({
-  //     status: "Failure",
-  //     message: "Internal Server Error" + error,
-  //     err: error,
-  //   });
-  // }
+    return res.status(200).json({
+      status: "Success",
+      message: "Data Updated Successfully",
+      gamedata: updatedRecord,
+      lngchoosen: data.translationId,
+      data: data3,
+      data2: lngdata,
+    });
+  }
+  // return res.status(200).json({
+  //   status: "AlreadyExist",
+  //   message: "Already exists",
+  //   lngchoosen: data.translationId,
+  //   data: data3,
+  // });
+  } catch (error) {
+    res.status(500).json({
+      status: "Failure",
+      message: "Internal Server Error" + error,
+      err: error,
+    });
+  }
 };
 
 // indu
@@ -854,29 +859,28 @@ const createLmsGameContentLang = async (
     content
   );
 
-  
-  
   if (updatedContent !== "Error") {
     /** For Text to Audio Convertion */
     const apiReqHeaderData = {
       text: updatedContent,
       model_id: "eleven_multilingual_v2",
       voice_settings: {
-        similarity_boost: .4,
-        stability: .7,
-        style: .1,
+        similarity_boost: 0.4,
+        stability: 0.7,
+        style: 0.1,
         use_speaker_boost: true,
       },
     };
-    
-    const newLangContentRow ={ gameId: gameId,
-    translationId: translationId,
-    tblName: tableName,
-    textId: id, //primary key id of a table
-    content: updatedContent, //text
-    fieldName: fieldName, // text field name
-    }
-/**params{
+
+    const newLangContentRow = {
+      gameId: gameId,
+      translationId: translationId,
+      tblName: tableName,
+      textId: id, //primary key id of a table
+      content: updatedContent, //text
+      fieldName: fieldName, // text field name
+    };
+    /**params{
 * updatedContent-> translated text content 
 * apiReqHeaderData-> text: updatedContent,
       model_id: "eleven_multilingual_v2",
@@ -896,8 +900,12 @@ const createLmsGameContentLang = async (
 * lngdata      ->lmsMultipleLanuageSupport table row data
 * 
 */
-    const audioUrls = await getConvertedTextToAudioUrls(apiReqHeaderData,newLangContentRow,req.body,lngdata);
-
+    const audioUrls = await getConvertedTextToAudioUrls(
+      apiReqHeaderData,
+      newLangContentRow,
+      req.body,
+      lngdata
+    );
 
     await lmsGameContentLang.create({
       gameId: gameId,
@@ -906,7 +914,7 @@ const createLmsGameContentLang = async (
       textId: id,
       content: updatedContent,
       fieldName: fieldName,
-      audioUrls: audioUrls
+      audioUrls: audioUrls,
     });
   } else {
     res.status(500).json({ status: "Failure", message: "Transalation Error" });
@@ -965,24 +973,34 @@ async function translateToAnotherLanguage(lng, content) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 const getCreatedLanguages = async (req, res) => {
   // try {
-    const getdata = req.body;
-    const condition = {
-      where: {
-        gameId: getdata.gameId,
-      },
-    };
-    const condition2 = {
-      where: {
-        language_name: "English",
-      },
-    };
+  const getdata = req.body;
+  const condition = {
+    where: {
+      gameId: getdata.gameId,
+    },
+  };
+  const condition2 = {
+    where: {
+      language_name: "English",
+    },
+  };
 
-    const datalng = await LmsLanguages.findOne(condition2);
-  
-    if (datalng.language_Id) {
-      const data = await lmsGameChoosenLang.findAll(condition);
-   
-      if (!data || data.length === 0) {
+  const datalng = await LmsLanguages.findOne(condition2);
+
+  if (datalng.language_Id) {
+    const data = await lmsGameChoosenLang.findAll(condition);
+
+    if (!data || data.length === 0) {
+      res.status(200).json({
+        status: "Success",
+        message: "Data getted SuccessFully...!",
+        data: data,
+        lngchoosen: datalng.language_Id,
+        lngchoosenname: "English",
+      });
+    } else {
+      const data2 = await LmsGame.findOne(condition);
+      if (!data2)
         res.status(200).json({
           status: "Success",
           message: "Data getted SuccessFully...!",
@@ -990,27 +1008,17 @@ const getCreatedLanguages = async (req, res) => {
           lngchoosen: datalng.language_Id,
           lngchoosenname: "English",
         });
-      } else {
-        const data2 = await LmsGame.findOne(condition);
-        if (!data2)
-          res.status(200).json({
-            status: "Success",
-            message: "Data getted SuccessFully...!",
-            data: data,
-            lngchoosen: datalng.language_Id,
-            lngchoosenname: "English",
-          });
-        else {
-          res.status(200).json({
-            status: "Success",
-            message: "Data getted SuccessFully...!",
-            data: data,
-            lngchoosen: data2.gameLanguageId,
-            lngchoosenname: "Others",
-          });
-        }
+      else {
+        res.status(200).json({
+          status: "Success",
+          message: "Data getted SuccessFully...!",
+          data: data,
+          lngchoosen: data2.gameLanguageId,
+          lngchoosenname: "Others",
+        });
       }
     }
+  }
   // } catch (error) {
   //   res.status(500).json({
   //     status: "Failure",
@@ -1025,117 +1033,168 @@ const getCreatedLanguages = async (req, res) => {
 const updateLanguageContent = async (req, res) => {
   const transaction = await sequelize.transaction();
   // try {
-    const condition = {
+  const condition = {
+    where: {
+      gameId: req.body.gameId,
+      translationId: req.body.translationId,
+    },
+  };
+  const data = await lmsGameChoosenLang.findAll(condition);
+
+  if (data.length !== 0) {
+    const record = await lmsGameContentLang.findOne({
       where: {
         gameId: req.body.gameId,
+        tblName: req.body.tblName,
+        textId: req.body.textId,
+        fieldName: req.body.fieldName,
         translationId: req.body.translationId,
       },
+    });
+    if (!record) {
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Record not found" });
+    }
+    const condition = {
+      where: {
+        language_Id: req.body.translationId,
+      },
     };
-    const data = await lmsGameChoosenLang.findAll(condition);
 
-    if (data.length !== 0) {
-      const record = await lmsGameContentLang.findOne({
-        where: {
-          gameId: req.body.gameId,
-          tblName: req.body.tblName,
-          textId: req.body.textId,
-          fieldName: req.body.fieldName,
-          translationId: req.body.translationId,
-        },
-      });
-      if (!record) {
-        return res
-          .status(404)
-          .json({ status: "Failure", message: "Record not found" });
+    lngdata = await LmsLanguages.findOne(condition);
+    const content = req?.body?.content;
+    const updatedContent = await translateToAnotherLanguage(
+      lngdata.language_name,
+      content
+    );
+    
+    if (updatedContent !== "Error") {
+      
+       /** For Text to Audio Convertion */
+    const apiReqHeaderData = {
+      text: updatedContent,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        similarity_boost: 0.4,
+        stability: 0.7,
+        style: 0.1,
+        use_speaker_boost: true,
+      },
+    };
+
+    const newLangContentRow = {
+      gameId:  req.body.gameId,
+      translationId: req.body.translationId,
+      tblName: req.body.tblName,
+      textId: req.body.textId, //primary key id of a table
+      content: updatedContent, //text
+      fieldName: req.body.fieldNam, // text field name
+    };
+    /**params{
+* updatedContent-> translated text content 
+* apiReqHeaderData-> text: updatedContent,
+      model_id: "eleven_multilingual_v2",
+      voice_settings: {
+        similarity_boost: .4,
+        stability: .7,
+        style: .1,
+        use_speaker_boost: true,
+      },
+* newLangContentRow  -> {  gameId: data.gameId,
+      translationId: data.translationId,
+      tblName: "lmsblocks",
+      textId: row.blockId,
+      content: updatedContent,
+      fieldName: "blockText",
       }
+* lngdata      ->lmsMultipleLanuageSupport table row data
+* 
+*/
+    const audioUrls = await getConvertedTextToAudioUrls(
+      apiReqHeaderData,
+      newLangContentRow,
+      req.body,
+      lngdata
+    );
+    //clear the existing audio file(s), while update it from server storage
+    const audioUrlsArray = JSON.parse(record.audioUrls).map((item)=> item.audioUrl);
+      const deleteAudioFileStatus = await deleteAudioFiles(audioUrlsArray); 
+
+      const updated = await record.update({
+        content: updatedContent,
+        audioUrls: audioUrls,
+      });
+
+      res.status(200).json({
+        status: "Success",
+        message: "Data Updated Successfully",
+        data: updated,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ status: "Failure", message: "Transalation Error" });
+    }
+  } else {
+    const createdGameChoosenLang = await lmsGameChoosenLang.create(
+      {
+        gameId: req?.body?.gameId,
+        translationId: req?.body?.translationId,
+      },
+      { fields: ["gameId", "translationId"], transaction }
+    );
+
+    if (createdGameChoosenLang) {
       const condition = {
         where: {
-          language_Id: req.body.translationId,
+          language_Id: createdGameChoosenLang.translationId,
         },
       };
 
       lngdata = await LmsLanguages.findOne(condition);
-      const content = req?.body?.content;
+
       const updatedContent = await translateToAnotherLanguage(
         lngdata.language_name,
-        content
+        req.body.content
       );
-    
+
       if (updatedContent !== "Error") {
-        const updated = await record.update({
+        // if(true)
+        const data = await lmsGameContentLang.create({
+          gameId: req.body.gameId,
+          translationId: req.body.translationId,
+          tblName: req.body.tblName,
+          textId: req.body.textId,
           content: updatedContent,
-          audioUrls : filePathString
-      });
-      
-        res.status(200).json({
+          fieldName: req.body.fieldName,
+          // audioUrls: filePathString
+        });
+        await transaction.commit();
+        if (!data) {
+          await transaction.rollback();
+          return res
+            .status(404)
+            .json({ status: "Failure", message: "Record not Inserted" });
+        }
+
+        return res.status(200).json({
           status: "Success",
-          message: "Data Updated Successfully",
-          data: updated,
+          message: "Data Inserted Successfully",
+          gamedata: data,
+          lngchoosen: data.translationId,
         });
       } else {
         res
           .status(500)
           .json({ status: "Failure", message: "Transalation Error" });
       }
-    } else {
-      const createdGameChoosenLang = await lmsGameChoosenLang.create(
-        {
-          gameId: req?.body?.gameId,
-          translationId: req?.body?.translationId,
-        },
-        { fields: ["gameId", "translationId"],  transaction }
-      );
-
-      if (createdGameChoosenLang) {
-        const condition = {
-          where: {
-            language_Id: createdGameChoosenLang.translationId,
-          },
-        };
-
-        lngdata = await LmsLanguages.findOne(condition);
-
-        const updatedContent = await translateToAnotherLanguage(
-          lngdata.language_name,
-          req.body.content
-        );
-
-        if (updatedContent !== "Error") {
-          // if(true)
-          const data = await lmsGameContentLang.create({
-            gameId: req.body.gameId,
-            translationId: req.body.translationId,
-            tblName: req.body.tblName,
-            textId: req.body.textId,
-            content: updatedContent,
-            fieldName: req.body.fieldName,
-            // audioUrls: filePathString
-          });
-          await transaction.commit();
-          if (!data) {
-            await transaction.rollback();
-            return res
-              .status(404)
-              .json({ status: "Failure", message: "Record not Inserted" });
-          }
-
-          return res.status(200).json({
-            status: "Success",
-            message: "Data Inserted Successfully",
-            gamedata: data,
-            lngchoosen: data.translationId,
-          });
-        } else {
-          res
-            .status(500)
-            .json({ status: "Failure", message: "Transalation Error" });
-        }
-      }
-
-      return res
-        .status(404)
-        .json({ status: "Failure", message: "Record not Inserted" });
     }
+
+    return res
+      .status(404)
+      .json({ status: "Failure", message: "Record not Inserted" });
+  }
   // } catch (error) {
   //   res.status(500).json({
   //     status: "Failure",
@@ -1147,7 +1206,7 @@ const updateLanguageContent = async (req, res) => {
 
 const convertTextToAudio = async (
   data,
-  voiceIds = [],
+  voiceIds = {},
   gameId,
   langCode = "en"
 ) => {
@@ -1164,97 +1223,115 @@ const convertTextToAudio = async (
  * }
  */
   try {
-    let fileArray = [];
-    let err="";
-    for (let voiceId of voiceIds) {
-      const send = {
-        text: data.text,
-        model_id: data?.model_id ?? "eleven_multilingual_v2",
-        voice_settings: data?.voice_settings ?? {
-          similarity_boost: .3,
-          stability: 0.6,
-          style: 0,
-          use_speaker_boost: true,
-        },
-      };
+    const fileArray = [];
+    let err = "";
+    // for (let voiceId of voiceIds) {
+      if(voiceIds)
+      {
+      const promises = Object.entries(voiceIds).map(async ([key, voiceId]) => {
+      if (voiceId) {
+        const send = {
+          text: data.text,
+          model_id: data?.model_id ?? "eleven_multilingual_v2",
+          voice_settings: data?.voice_settings ?? {
+            similarity_boost: 0.3,
+            stability: 0.6,
+            style: 0,
+            use_speaker_boost: true,
+          },
+        };
 
-      let options = {
-        method: "POST",
-        // mode: 'cors',
-        headers: {
-          "xi-api-key": process.env.ELEVENLAPS_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(send),
-      };
+        let options = {
+          method: "POST",
+          // mode: 'cors',
+          headers: {
+            "xi-api-key": process.env.ELEVENLAPS_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(send),
+        };
+
+        //uncomment this when API works
+        // const response = await fetch(
+        //   `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+        //   options
+        // );
+
+        // if (response.contentType?.startsWith('audio/')) {
+
+        // const audioData = await response.blob();
+        /**Comment next two lines*/
+        const randomPath = Math.floor(Math.random() * 3);
+        const testFiles = ["note.mp3", "dialogue.mp3", "interaction.mp3"];
+        const audioFilePath = path.join(
+          __dirname,
+          "..",
+          "..",
+          "uploads",
+          "test",
+          testFiles[randomPath]
+        );
+        // Read the audio file
+        if (!fs.existsSync(audioFilePath)) {
+          // console.error("Audio file not found:", audioFilePath);
+          return;
+        } 
+        const audioData = await fsp.readFile(audioFilePath);
+        // fs.readFile(audioFilePath, (err, audioData) => {
+
+        const timestamp = Date.now();
+        const filename = `${langCode}_${voiceId}_${timestamp}.mp3`; // Example filename: 1646610500000_6digit number between 100000 to 999999.mp3
+
+        // Define the directory where you want to save the audio files
+        // const directory = path("uploads", "tta", gameId, langCode); // Adjust the directory path as needed
+        const directory = path.join(
+          __dirname,
+          "..",
+          "..",
+          "uploads",
+          "tta",
+          gameId,
+          langCode
+        );
+
+        // Ensure the directory exists, create it if it doesn't
+        await fsp.mkdir(directory, { recursive: true });
+
+        // Write the audio data to the file
+        const filePath = path.join(directory, filename);
+        await fsp.writeFile(filePath, audioData);
+        console.log(voiceId ," ==> ",{ filename: filename, path: filePath, error: "" });
+        fileArray.push({ filename: filename, path: filePath, error: "" });
+
+        // console.log("fileArray", fileArray);
+        /**Uncomment when api works */
+        //   }
+        //   else{
+        //      const errorResponse = await response.json();
+        //      err = errorResponse?.detail;
+        //     console.log ("$$$$ Api Error Message  -- ",errorResponse?.detail);
+        // }
+      }
+    });
   
-       //uncomment this when API works 
-      // const response = await fetch(
-      //   `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      //   options
-      // );
-
-      // if (response.contentType?.startsWith('audio/')) {
-       
-      // const audioData = await response.blob(); 
-      /**Comment next two lines*/
-      const randomPath = Math.floor(Math.random()*3);
-      const testFiles = ['note.mp3', 'dialogue.mp3', 'interaction.mp3'];
-      const audioFilePath = path.join(__dirname, '..', '..', 'uploads', 'test', testFiles[randomPath]);
-      console.log('audioFilePath',audioFilePath)
-      // Read the audio file
-      if (!fs.existsSync(audioFilePath)) {
-        console.error('Audio file not found:', audioFilePath);
-        return;
-    }
-    else{
-      console.log("Filefound")
-    }
-
-    const audioData = await fsp.readFile(audioFilePath);
-      // fs.readFile(audioFilePath, (err, audioData) => {
-        
-      
-      const timestamp = Date.now();
-      const filename = `${langCode}_${voiceId}_${timestamp}.mp3`; // Example filename: 1646610500000_6digit number between 100000 to 999999.mp3
-
-      // Define the directory where you want to save the audio files
-      // const directory = path("uploads", "tta", gameId, langCode); // Adjust the directory path as needed
-      const directory = path.join(__dirname, '..', '..','uploads', 'tta', gameId, langCode);
-        
-      
-      
-      // Ensure the directory exists, create it if it doesn't
-      await fsp.mkdir(directory, { recursive: true });
-
-      // Write the audio data to the file
-      const filePath = path.join(directory, filename);
-      await fsp.writeFile(filePath, audioData);
-      fileArray.push({ filename: filename, path: filePath, error: "" });
-
-      console.log("fileArray", fileArray);
-      /**Uncomment when api works */
-  //   }
-  //   else{
-  //      const errorResponse = await response.json();
-  //      err = errorResponse?.detail;
-  //     console.log ("$$$$ Api Error Message  -- ",errorResponse?.detail);
-  // }
+    // console.log('fileArray', fileArray)
+    await Promise.all(promises);
   }
-    return {status: fileArray.length > 0 ? "Success" : "Failure" , data : fileArray, error :err };
-
+  return {
+    status: fileArray.length > 0 ? "Success" : "Failure",
+    data: fileArray,
+    error: err,
+  };
   } catch (error) {
-    return {status: "Failure", error : error };
+    return { status: "Failure", error: error };
   }
 };
 
-const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions ) => {
+const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions) => {
   /**selectedlangOptions  => req.body
-   * lmsgamecontentlang => lmsgamecontentlang row data 
-   * 
-  */
-  console.log("$$$$$$lmsgamecontentlang", lmsgamecontentlang)
-  console.log("$$$$$$selectedlangOptions", selectedlangOptions)
+   * lmsgamecontentlang => lmsgamecontentlang row data
+   *
+   */
   /*** Hint****
    * selectedlangOptions Object as
    * {gamecontentId: id,
@@ -1279,16 +1356,22 @@ const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions ) => {
         voiceIds.narrator = selectedlangOptions.gameNarratorVoice;
         return voiceIds;
       case "lmsblocks":
-        const currentBlock = await LmsBlocks.findByPk(lmsgamecontentlang?.textId, {
-          attributes: ["blockRoll"],
-        });
+        const currentBlock = await LmsBlocks.findByPk(
+          lmsgamecontentlang?.textId,
+          {
+            attributes: ["blockRoll"],
+          }
+        );
         return await getMappedVoice(currentBlock, selectedlangOptions);
       case "lmsquestionsoption":
         if (lmsgamecontentlang.fieldName == "qpFeedback") {
           voiceIds.malePlayer = selectedlangOptions?.gamePlayerMaleVoice;
           voiceIds.femalePlayer = selectedlangOptions?.gamePlayerFemaleVoice;
         }
-        if (lmsgamecontentlang.fieldName == "qpOptions" || lmsgamecontentlang.fieldName == "qpOptionText") {
+        if (
+          lmsgamecontentlang.fieldName == "qpOptions" ||
+          lmsgamecontentlang.fieldName == "qpOptionText"
+        ) {
           const currentQuestionOptionBlock = await lmsQuestionsOption.findByPk(
             lmsgamecontentlang?.textId,
             {
@@ -1308,9 +1391,9 @@ const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions ) => {
           result.femalePlayer = selectedlangOptions?.gamePlayerFemaleVoice;
           return result;
         }
-        if (lmsgamecontentlang.fieldName =="qpResponse") {
+        if (lmsgamecontentlang.fieldName == "qpResponse") {
           const currentQuestionOptionBlock = await lmsQuestionsOption.findByPk(
-            record?.textId,
+            lmsgamecontentlang?.textId,
             {
               attributes: ["qpQuestionId"],
               include: {
@@ -1361,9 +1444,12 @@ const getMappedVoice = async (row, selectedlangOptions) => {
   return voiceId;
 };
 
-
-const getConvertedTextToAudioUrls=async(apiReqHeaderData,newLangContentRow, reqBody, langRowData )=>{
-
+const getConvertedTextToAudioUrls = async (
+  apiReqHeaderData,
+  newLangContentRow,
+  reqBody,
+  langRowData
+) => {
   /**params{
  * updatedContent-> translated text content 
  * apiReqHeaderData-> text: updatedContent,
@@ -1386,27 +1472,52 @@ const getConvertedTextToAudioUrls=async(apiReqHeaderData,newLangContentRow, reqB
  * 
 */
 
-const voiceId = await getSpeakerVoiceId(newLangContentRow, newLangContentRow);
-/** You may get multiple audio files for players when palyer became a speaker of the content like choosed question options & dialog and response, etc.,*/
-const audioUrlArray = await convertTextToAudio(
-  apiReqHeaderData,
-  voiceId,
-  reqBody?.gameId,
-  langRowData?.language_code
-);
-/** Write code to store thi into table as sring for receied array ny looping the audioUrlArray*/
-let jsonObjectArray = [];
-for (let data of audioUrlArray.data){
+  const voiceId = await getSpeakerVoiceId(newLangContentRow, reqBody);
+
+  /** You may get multiple audio files for players when palyer became a speaker of the content like choosed question options & dialog and response, etc.,*/
+  const audioUrlArray = await convertTextToAudio(
+    apiReqHeaderData,
+    voiceId,
+    reqBody?.gameId,
+    langRowData?.language_code
+  );
+  /** Write code to store thi into table as sring for receied array ny looping the audioUrlArray*/
+  let jsonObjectArray = [];
   
-  let voiceId = data.filename.split('_')[1];
-  /** filename: 'ta_D38z5RcWu1voky8WS1ja_1708683731564.mp3'
-   *             langCode_VoiceId_timestamp.format
-                   0        1        2
-  */
-  jsonObjectArray.push({'voiceId': voiceId, audioUrl: data?.path})
-}             
+  console.log("audioUrlArray", audioUrlArray);
+  if(audioUrlArray.status == 'Success'){
+    const dataArray = audioUrlArray.data
+    for (let data of dataArray) {      
+      let voiceId = data.filename.split("_")[1];
+      /** filename: 'ta_D38z5RcWu1voky8WS1ja_1708683731564.mp3'
+       *             langCode_VoiceId_timestamp.format
+      0        1        2
+      */
+    jsonObjectArray.push({ voiceId: voiceId, audioUrl: data.path });
+  }
   return JSON.stringify(jsonObjectArray);
 }
+return '';
+};
+
+const deleteAudioFiles = async (audiosUrls = [])=>{
+// const deleteAudioFiles = async (req, res)=>{
+//   console.log('audiosUrls',req.body);
+  try {
+    // Delete the file
+    const promise = req.body.map(async (url) =>{
+      await fsp.unlink(url);
+      console.log("url", url)
+    });
+    await Promise.all(promise);
+
+    return {status: "Success", message: 'File deleted successfully'};
+} catch (error) {
+    console.error('Error deleting file:', error);
+    return {status: "Failure", message: error.message};
+}
+}
+
 module.exports = {
   getLanguages,
   updatelanguages,
@@ -1418,4 +1529,5 @@ module.exports = {
   getQuestionOptions,
   getQuestionOptionsText,
   getQuestionResponse,
+  deleteAudioFiles
 };
