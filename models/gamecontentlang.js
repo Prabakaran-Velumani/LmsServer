@@ -57,9 +57,4 @@ const lmsGameContentLang = sequelize.define(
             }
           );
 //LmsGame.belongsTo(game, { foreignKey: "gameId", as: "image" });
-// In lmsgamecontentlang.js
-// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'textId', targetKey: 'blockId' });
-// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'blockId', as: 'block' });
-
-// lmsGameContentLang.belongsTo(LmsBlocks, { foreignKey: 'blockId' });
 module.exports = lmsGameContentLang;

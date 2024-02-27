@@ -1,43 +1,37 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../lib/config/database");
-const lmsquestion=require("./questionOptions");
+const lmsquestion = require("./questionOptions");
 
 const LmsBlocks = sequelize.define(
   "lmsblocks",
   {
     blockGameId: {
       type: DataTypes.INTEGER(100),
-     allowNull: true,
-     
+      allowNull: true,
     },
-    blockQuestNo:{
+    blockQuestNo: {
       type: DataTypes.INTEGER(100),
       allowNull: true,
-
     },
     blockId: {
       type: DataTypes.INTEGER(100),
-     allowNull: true,
+      allowNull: true,
       primaryKey: true,
       autoIncrement: true,
     },
     blockSecondaryId: {
       type: DataTypes.INTEGER(100),
-     allowNull: true,
-     
-      
+      allowNull: true,
     },
     blockPrimarySequence: {
       type: DataTypes.STRING(100),
-     allowNull: true,
-     
+      allowNull: true,
     },
     blockDragSequence: {
       type: DataTypes.STRING(100),
-     allowNull: true,
-     
+      allowNull: true,
     },
-    
+
     blockType: {
       type: DataTypes.ENUM("reflection", "normal"),
       allowNull: true,
@@ -132,7 +126,7 @@ const LmsBlocks = sequelize.define(
     },
     blockIpAddress: {
       type: DataTypes.STRING(16),
-     allowNull: true,
+      allowNull: true,
     },
     blockUserAgent: {
       type: DataTypes.TEXT,
@@ -140,7 +134,7 @@ const LmsBlocks = sequelize.define(
     },
     blockDeviceType: {
       type: DataTypes.STRING(16),
-     allowNull: true,
+      allowNull: true,
     },
   },
   {
@@ -149,19 +143,32 @@ const LmsBlocks = sequelize.define(
     timestamps: false,
     underscored: false,
   }
-); 
-LmsBlocks.belongsTo(lmsquestion, { foreignKey: "blockId", targetKey: "qpQuestionId", as: "MaxScore" });
-lmsquestion.belongsTo(LmsBlocks,{foreignKey: "qpQuestionId", targetKey:"blockId", as: "lmsQuestionBlock", scope: {
-  blockDeleteStatus: "No",
-  blockActiveStatus: "Active"
-}})
-LmsBlocks.hasMany(lmsquestion,{ foreignKey: "qpQuestionId", as: "lmsBlockQuestions", scope: {
-  blockDeleteStatus: "No",
-  blockActiveStatus: "Active"
-}})
+);
+LmsBlocks.belongsTo(lmsquestion, {
+  foreignKey: "blockId",
+  targetKey: "qpQuestionId",
+  as: "MaxScore",
+});
+lmsquestion.belongsTo(LmsBlocks, {
+  foreignKey: "qpQuestionId",
+  targetKey: "blockId",
+  as: "lmsQuestionBlock",
+  scope: {
+    blockDeleteStatus: "No",
+    blockActiveStatus: "Active",
+  },
+});
+LmsBlocks.hasMany(lmsquestion, {
+  foreignKey: "qpQuestionId",
+  as: "lmsBlockQuestions",
+  scope: {
+    blockDeleteStatus: "No",
+    blockActiveStatus: "Active",
+  },
+});
 // sequelize
 //   .sync()
-//   .then(() => { 
+//   .then(() => {
 //     console.log("LmsBlocks table created successfully!");
 //   })
 //   .catch((error) => {

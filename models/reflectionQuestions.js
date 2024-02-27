@@ -72,9 +72,6 @@ const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
   tableName: 'lmsreflectionquestion', // Specify the table name if it differs from the model name
   freezeTableName: true,
 });
-
-// ReflectionQuestion.belongsTo(LmsGame,{foreignKey: "refGameId", targetKey: "gameId", as: "gameReflectionQuestion"});
-// ReflectionQuestion.belongsTo(LmsGame, { foreignKey: "refGameId", targetKey: "gameId" });
 // sequelize
 //   .sync()
 //   .then(() => {

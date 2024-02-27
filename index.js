@@ -62,9 +62,10 @@ app.use('/planvalidity',planvalidityRoutes);
 app.use('/getLocation',geoLocationRoute);
 app.use('/subscription',subscription)
 app.use('/skills',skillsRoutes);
-app.use('/scorm',scormRoute)
 app.use('/translate',translateRoutes);
 app.use('/languages',languageRoutes);
+app.use('/gamereview',gameReviewRoutes);
+app.use('/scorm',scormRoute);
 
 app.listen(process.env.PORT || 5555,'192.168.1.29', (err) => {
   if (err) throw err;

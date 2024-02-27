@@ -1,10 +1,9 @@
-const { generateToken } = require("../../lib/authentication/auth");
 const LmsGame = require("../../models/game");
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op } = require('sequelize');
 const CompletionScreen = require("../../models/completionScreen");
 const ReflectionQuestion = require("../../models/reflectionQuestions");
-const gameassest = require("../../models/gameAsset");
-const gameHistory = require("../../models/gameviewhistory");
+const gameassest = require("../../models/gameAsset")
+const gameHistory=require("../../models/gameviewhistory");
 const LmsBlocks = require("../../models/blocks");
 const lmsQuestionOptions = require("../../models/questionOptions");
 const learners = require("../../models/learner");
@@ -27,9 +26,7 @@ const addGame = async (req, res) => {
     const LoginUserRole = req.user.user.role;
     const LoginUserId = req.user.user.id;
     if (!req.body) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Bad request" });
+      return res.status(400).json({ status: "Failure", message: "Bad request" });
     }
     const gameLasttabValue = req.body.gameLastTab;
     const integerValue = parseInt(gameLasttabValue, 10); // Using parseInt
@@ -65,7 +62,6 @@ const addGame = async (req, res) => {
     if (req.device) {
       cleanedBody.gameDeviceType = req.device.type;
     }
-
     const result = await LmsGame.create(cleanedBody);
     // return res.status(400).json({ status: "Failure", message: result });
 
@@ -75,7 +71,7 @@ const addGame = async (req, res) => {
       data: result,
     });
   } catch (err) {
-    // console.error("Error in addgame:", err.message);
+    console.error("Error in addgame:", err.message);
 
     return res.status(500).json({
       status: "Failure",
@@ -447,47 +443,40 @@ const updateGame = async (req, res) => {
         try {
           // Try to parse the existing value as JSON
           updatedArray = JSON.parse(findlasttab.gameLastTabArray);
-
           // If successful, check if the value is already in the array
           if (!updatedArray.includes(data.gameLastTab)) {
             // If not inside, push the value into the array
             updatedArray.push(data.gameLastTab);
             findlasttab.gameLastTabArray = JSON.stringify(updatedArray);
-            await findlasttab.save();
-            data.gameLastTabArray = findlasttab.gameLastTabArray;
+        await findlasttab.save();
+        data.gameLastTabArray=findlasttab.gameLastTabArray;
           } else {
-            data.gameLastTabArray = findlasttab.gameLastTabArray;
-            // console.log(`Value ${data.gameLastTab} is already inside gameLastTabArray`);
+            data.gameLastTabArray=findlasttab.gameLastTabArray
+            console.log(`Value ${data.gameLastTab} is already inside gameLastTabArray`);
           }
         } catch (error) {
           // If parsing fails, handle it accordingly
-          // console.error('Error parsing gameLastTabArray:', error);
+          console.error('Error parsing gameLastTabArray:', error);
         }
 
         // Save the updated array back to the database
-
-        // console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
+        
+        
+        console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
       } else {
-        // console.log('gameLastTabArray not found or is null');
+        console.log('gameLastTabArray not found or is null');
+       
       }
       // Other logic...
-
+   
+     
+     
       // data.gameLastTab = JSON.stringify(data.gameLastTab);
     }
 
-    if (!id)
-      return res
-        .status(404)
-        .json({ status: "Failure", message: "bad Request" });
-    if (!req.body)
-      return res
-        .status(404)
-        .json({ status: "Failure", message: "bad Request" });
-    if (
-      data.gameSkills &&
-      Array.isArray(data.gameSkills) &&
-      data.gameSkills.length > 0
-    ) {
+    if (!id) return res.status(404).json({ status: 'Failure', message: "bad Request" });
+    if (!req.body) return res.status(404).json({ status: 'Failure', message: "bad Request" });
+    if (data.gameSkills && Array.isArray(data.gameSkills) && data.gameSkills.length > 0) {
       const updatedSkills = await Promise.all(
         data.gameSkills.map(async (skill) => {
           // Check if a skill with the same name exists
@@ -554,7 +543,6 @@ const updateGame = async (req, res) => {
     //     })
     //   );
     //   data.gameCategoryId = updatedCategory.join(',');
-
     //   data.gameDuplicated='NO';
     //   // Update data.gameSkills with the new skill IDs
     //   // data.gameSkills = updatedSkills;
@@ -767,192 +755,195 @@ const countByStage = async (req, res) => {
           },
         ],
       },
-      group: ["gameExtensionId"],
+      group: ['gameExtensionId'],
     });
 
+
+
     return res.status(200).json({
-      status: "Success",
-      message: "All Data Retrieved Successfully",
-      creationCount: creationCount.length,
-      reviewCount: reviewCount.length,
-      PublicCount: PublicCount.length,
-      count: overallCount.length,
+      status: 'Success',
+      message: "All Data Retrieved Successfully", creationCount:creationCount.length, reviewCount:reviewCount.length, PublicCount:PublicCount.length,count:overallCount.length
     });
+    
   } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error,
-    });
+
+    res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error });
   }
-};
+
+}
 const gameDuplicate = async (req, res) => {
   try {
+
     const id = req?.params?.id;
 
-    const getAllgame = await LmsGame.findAll({
-      where: {
-        gameExtensionId: id,
-      },
-      order: [["gameId", "ASC"]],
-    });
+const getAllgame= await LmsGame.findAll({
+  where:{
+    gameExtensionId:id
+  }
+  ,
+  order: [['gameId', 'ASC']],
+})
+ 
 
-    let setExtenstion = [];
-    const processedGames = await Promise.all(
-      getAllgame.map(async (game, index) => {
-        const gameToClone = await LmsGame.findByPk(game.gameId);
-        let taketile = gameToClone?.gameTitle?.split("_");
-        const currentDate = new Date();
-        const formattedDate = `${currentDate.getDate()}-${
-          currentDate.getMonth() + 1
-        }-${currentDate.getFullYear()}`;
-        const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
+let setExtenstion=[];
+const processedGames = await Promise.all(getAllgame.map(async (game, index) => {
+  
+  const gameToClone = await LmsGame.findByPk(game.gameId);
+  let taketile= gameToClone?.gameTitle?.split('_');
+  const currentDate = new Date();
+const formattedDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
 
-        // Create newTitle with current date and time
-        let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
-        const clonedGame = LmsGame.build({
-          ...gameToClone.get(), // Using spread syntax to copy all fields
-          gameId: null, // Set id to null to create a new record
-          // Modify specific fields here
-          gameTitle: newTitle, // Change 'someField' to the new value
-          gameGameStage: "Creation",
-          gameExtensionId: null,
-          gameDuplicated: "YES",
-          gameStageDate: Date.now(),
-          gameCreatedDatetime: Date.now(),
-          gameIpAddress: req.connection.remoteAddress,
-          gameUserAgent: req.headers["user-agent"],
-        });
-        await clonedGame.save();
+// Create newTitle with current date and time
+let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
+  const clonedGame = LmsGame.build({
+    ...gameToClone.get(), // Using spread syntax to copy all fields
+    gameId: null, // Set id to null to create a new record
+    // Modify specific fields here
+    gameTitle: newTitle, // Change 'someField' to the new value
+    gameGameStage: 'Creation',
+    gameExtensionId: null,
+    gameDuplicated:'YES',
+    gameStageDate:Date.now(),
+    gameCreatedDatetime:Date.now(),
+    gameIpAddress: req.connection.remoteAddress,
+    gameUserAgent: req.headers["user-agent"],
+   
 
-        if (clonedGame && index === 0) {
-          setExtenstion.push(clonedGame.gameId);
+  });
+  await clonedGame.save();
+
+  if(clonedGame && index=== 0){
+    
+    
+    setExtenstion.push(clonedGame.gameId);
+  }
+      //  return false;
+   const gameup= await LmsGame.update(
+      { gameExtensionId: setExtenstion[0] },
+      {
+        where: {
+          gameId: clonedGame.gameId
         }
-        //  return false;
-        const gameup = await LmsGame.update(
-          { gameExtensionId: setExtenstion[0] },
-          {
-            where: {
-              gameId: clonedGame.gameId,
-            },
-          }
-        );
+      }
+    );
+    console.log('setExtenstion',setExtenstion[0]);
+console.log('clonedGame.gameId',gameup,index);
+  
+  
+  if (clonedGame) {
+    const blocksToClone = await LmsBlocks.findAll({
+      where: {
+        blockGameId: id,
+        blockQuestNo:clonedGame.gameQuestNo,// Replace 'yourValue' with the actual value you're searching for
+      }
 
-
-        if (clonedGame) {
-          const blocksToClone = await LmsBlocks.findAll({
+    });
+   
+    if (blocksToClone) {
+      for (const block of blocksToClone) {
+        // Perform your actions for each block here
+        // For example, clone the block or perform any other operation
+        const clonedBlock = await LmsBlocks.create({
+          ...block.get(),
+          blockId:null,
+          blockGameId: setExtenstion[0],
+         
+        });
+        await clonedBlock.save();
+        if (clonedBlock) {
+          const QuestionsOptionToClone = await lmsQuestionOptions.findAll({
             where: {
-              blockGameId: id,
-              blockQuestNo: clonedGame.gameQuestNo, // Replace 'yourValue' with the actual value you're searching for
-            },
+              qpQuestionId: block.blockId,
+            }
           });
 
-          if (blocksToClone) {
-            for (const block of blocksToClone) {
-              // Perform your actions for each block here
-              // For example, clone the block or perform any other operation
-              const clonedBlock = await LmsBlocks.create({
-                ...block.get(),
-                blockId: null,
-                blockGameId: setExtenstion[0],
+          if (QuestionsOptionToClone) {
+            for (const option of QuestionsOptionToClone) {
+              const clonedOption = await lmsQuestionOptions.create({
+                ...option.get(),
+                qpOptionId:null,
+                qpQuestionId: clonedBlock.blockId,
+                qpGameId:setExtenstion[0]
               });
-              await clonedBlock.save();
-              if (clonedBlock) {
-                const QuestionsOptionToClone = await lmsQuestionOptions.findAll(
-                  {
-                    where: {
-                      qpQuestionId: block.blockId,
-                    },
-                  }
-                );
+              await clonedOption.save();
 
-                if (QuestionsOptionToClone) {
-                  for (const option of QuestionsOptionToClone) {
-                    const clonedOption = await lmsQuestionOptions.create({
-                      ...option.get(),
-                      qpOptionId: null,
-                      qpQuestionId: clonedBlock.blockId,
-                      qpGameId: setExtenstion[0],
-                    });
-                    await clonedOption.save();
-                  }
-                }
-              }
-            }
-          } else {
-            // const result = await LmsGame.destroy({
-            //   where: {
-            //     gameId: clonedGame.gameId,
-            //   },
-            // });
-            // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
-          }
-          if (index === 0) {
-            const relfectionToClone = await ReflectionQuestion.findAll({
-              where: {
-                refGameId: id, // Replace 'yourValue' with the actual value you're searching for
-              },
-            });
-
-            if (relfectionToClone) {
-              for (const ref of relfectionToClone) {
-                const clonedRelfection = await ReflectionQuestion.create({
-                  ...ref.get(),
-                  refId: null, // Set id to null to create a new record
-                  refGameId: setExtenstion[0],
-                });
-              }
             }
           }
-        } else {
-          return res
-            .status(400)
-            .json({ status: "Failure", message: "Game Not Duplicated ." });
         }
-      })
-    );
-    let sendData = [];
-    if (setExtenstion.length > 0) {
-      // Check if setExtenstion is not empty
-      sendData = await LmsGame.findAll({
-        where: {
-          gameId: setExtenstion[0],
-        },
-      });
-      return res.status(200).json({
-        status: "Success",
-        message: "Game Duplicated successfully.",
-        data: sendData,
-      });
+
+      }
+    } else {
+      // const result = await LmsGame.destroy({
+      //   where: {
+      //     gameId: clonedGame.gameId,
+      //   },
+      // });
+      // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
+
     }
-    return res.status(200).json({
-      status: "Success",
-      message: "Game Duplicated successfully.",
-      data: sendData,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error.message,
-    });
+    if(index===0){
+      const relfectionToClone = await ReflectionQuestion.findAll({
+        where: {
+          refGameId: id // Replace 'yourValue' with the actual value you're searching for
+        }
+
+      });
+      
+      if (relfectionToClone) {
+        for (const ref of relfectionToClone) {
+
+          const clonedRelfection = await ReflectionQuestion.create({
+            ...ref.get(),
+            refId: null, // Set id to null to create a new record
+            refGameId: setExtenstion[0]
+          });
+  
+        }
+      }
+    }
+   
+
+
+
+   
+  } else {
+   
+   return  res.status(400).json({ status: 'Failure', message: 'Game Not Duplicated .' });
   }
-};
+
+  
+}));
+let sendData=[];
+if ( setExtenstion.length > 0) { // Check if setExtenstion is not empty
+   sendData = await LmsGame.findAll({
+    where: {
+      gameId: setExtenstion[0]
+    }
+  });
+  return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+}
+return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+
+  } catch(error) {
+
+    res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error.message });
+  }
+
+}
 const gameLaunch = async (req, res) => {
   try {
     const id = req?.params?.id;
     const record = await LmsGame.findByPk(id);
     if (!record) {
-      return res
-        .status(404)
-        .json({ status: "Failure", error: "Record not found" });
+      return res.status(404).json({ status: 'Failure', error: 'Record not found' });
     }
 
     const intral = await LmsGame.update(
       {
-        gameDuplicated: "NO",
-        gameGameStage: "Review",
-        gameStageDate: Date.now(),
+        gameDuplicated:'NO',
+      gameGameStage: 'Review',
+      gameStageDate:Date.now(),
       },
       {
         where: {
@@ -962,207 +953,207 @@ const gameLaunch = async (req, res) => {
     );
     // await record.destroy();
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Record Successfully Deleted" });
+    res.status(200).json({ status: 'Success', message: 'Record Successfully Deleted' });
+
   } catch {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error,
-    });
+    res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error });
   }
-};
+
+}
 const gameAssign = async (req, res) => {
   try {
     const id = req?.params?.id;
     const data = req.body;
-  } catch {}
-};
+
+
+  } catch {
+
+  }
+
+}
 const gamePublic = async (req, res) => {
   try {
+
     const id = req?.params?.id;
 
-    const getAllgame = await LmsGame.findAll({
-      where: {
-        gameExtensionId: id,
-      },
-      order: [["gameId", "ASC"]],
+const getAllgame= await LmsGame.findAll({
+  where:{
+    gameExtensionId:id
+  }
+  ,
+  order: [['gameId', 'ASC']],
+})
+ 
+
+let setExtenstion=[];
+const processedGames = await Promise.all(getAllgame.map(async (game, index) => {
+  
+  const gameToClone = await LmsGame.findByPk(game.gameId);
+  let taketile= gameToClone?.gameTitle?.split('_');
+  const currentDate = new Date();
+const formattedDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
+
+// Create newTitle with current date and time
+let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
+  const clonedGame = LmsGame.build({
+    
+   ...gameToClone.get(), // Using spread syntax to copy all fields
+      gameId: null, // Set id to null to create a new record
+      gameGameStage: 'Launched',
+      gameExtensionId:null,
+      gameDuplicated:'NO',
+      gameStageDate:Date.now(),
+      gameCreatedDatetime:Date.now(),
+      gameIpAddress: req.connection.remoteAddress,
+      gameUserAgent: req.headers["user-agent"],
+   
+
     });
-
-    let setExtenstion = [];
-    const processedGames = await Promise.all(
-      getAllgame.map(async (game, index) => {
-        const gameToClone = await LmsGame.findByPk(game.gameId);
-        let taketile = gameToClone?.gameTitle?.split("_");
-        const currentDate = new Date();
-        const formattedDate = `${currentDate.getDate()}-${
-          currentDate.getMonth() + 1
-        }-${currentDate.getFullYear()}`;
-        const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
-
-        // Create newTitle with current date and time
-        let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
-        const clonedGame = LmsGame.build({
-          ...gameToClone.get(), // Using spread syntax to copy all fields
-          gameId: null, // Set id to null to create a new record
-          gameGameStage: "Launched",
-          gameExtensionId: null,
-          gameDuplicated: "NO",
-          gameStageDate: Date.now(),
-          gameCreatedDatetime: Date.now(),
-          gameIpAddress: req.connection.remoteAddress,
-          gameUserAgent: req.headers["user-agent"],
-        });
-        await clonedGame.save();
-        //  return res.status(200).json({ message: 'Game Duplicated successfully.', data: clonedGame });
-        if (clonedGame && index === 0) {
-          setExtenstion.push(clonedGame.gameId);
+    await clonedGame.save();
+    //  return res.status(200).json({ message: 'Game Duplicated successfully.', data: clonedGame });
+  if(clonedGame && index=== 0){
+    
+    
+    setExtenstion.push(clonedGame.gameId);
+  }
+      //  return false;
+   const gameup= await LmsGame.update(
+      { gameExtensionId: setExtenstion[0] },
+      {
+        where: {
+          gameId: clonedGame.gameId
         }
-        //  return false;
-        const gameup = await LmsGame.update(
-          { gameExtensionId: setExtenstion[0] },
-          {
-            where: {
-              gameId: clonedGame.gameId,
-            },
-          }
-        );
+      }
+    );
+    console.log('setExtenstion',setExtenstion[0]);
+console.log('clonedGame.gameId',gameup,index);
+  
+  
+  if (clonedGame) {
+    const blocksToClone = await LmsBlocks.findAll({
+      where: {
+        blockGameId: id,
+        blockQuestNo:clonedGame.gameQuestNo,// Replace 'yourValue' with the actual value you're searching for
+      }
 
-        if (clonedGame) {
-          const blocksToClone = await LmsBlocks.findAll({
+    });
+   
+    if (blocksToClone) {
+      for (const block of blocksToClone) {
+        // Perform your actions for each block here
+        // For example, clone the block or perform any other operation
+        const clonedBlock = await LmsBlocks.create({
+          ...block.get(),
+          blockId:null,
+          blockGameId: setExtenstion[0],
+         
+        });
+        await clonedBlock.save();
+        if (clonedBlock) {
+          const QuestionsOptionToClone = await lmsQuestionOptions.findAll({
             where: {
-              blockGameId: id,
-              blockQuestNo: clonedGame.gameQuestNo, // Replace 'yourValue' with the actual value you're searching for
-            },
+              qpQuestionId: block.blockId,
+            }
           });
 
-          if (blocksToClone) {
-            for (const block of blocksToClone) {
-              // Perform your actions for each block here
-              // For example, clone the block or perform any other operation
-              const clonedBlock = await LmsBlocks.create({
-                ...block.get(),
-                blockId: null,
-                blockGameId: setExtenstion[0],
+          if (QuestionsOptionToClone) {
+            for (const option of QuestionsOptionToClone) {
+              const clonedOption = await lmsQuestionOptions.create({
+                ...option.get(),
+                qpOptionId:null,
+                qpQuestionId: clonedBlock.blockId,
+                qpGameId:setExtenstion[0]
               });
-              await clonedBlock.save();
-              if (clonedBlock) {
-                const QuestionsOptionToClone = await lmsQuestionOptions.findAll(
-                  {
-                    where: {
-                      qpQuestionId: block.blockId,
-                    },
-                  }
-                );
+              await clonedOption.save();
 
-                if (QuestionsOptionToClone) {
-                  for (const option of QuestionsOptionToClone) {
-                    const clonedOption = await lmsQuestionOptions.create({
-                      ...option.get(),
-                      qpOptionId: null,
-                      qpQuestionId: clonedBlock.blockId,
-                      qpGameId: setExtenstion[0],
-                    });
-                    await clonedOption.save();
-                  }
-                }
-              }
-            }
-          } else {
-            // const result = await LmsGame.destroy({
-            //   where: {
-            //     gameId: clonedGame.gameId,
-            //   },
-            // });
-            // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
-          }
-          if (index === 0) {
-            const relfectionToClone = await ReflectionQuestion.findAll({
-              where: {
-                refGameId: id, // Replace 'yourValue' with the actual value you're searching for
-              },
-            });
-
-            if (relfectionToClone) {
-              for (const ref of relfectionToClone) {
-                const clonedRelfection = await ReflectionQuestion.create({
-                  ...ref.get(),
-                  refId: null, // Set id to null to create a new record
-                  refGameId: setExtenstion[0],
-                });
-              }
             }
           }
-        } else {
-          return res
-            .status(400)
-            .json({ status: "Failure", message: "Game Not Duplicated ." });
         }
-      })
-    );
-    let sendData = [];
-    if (setExtenstion.length > 0) {
-      // Check if setExtenstion is not empty
-      sendData = await LmsGame.findAll({
-        where: {
-          gameId: setExtenstion[0],
-        },
-      });
-      return res.status(200).json({
-        status: "Success",
-        message: "Game Duplicated successfully.",
-        data: sendData,
-      });
+
+      }
     } else {
+      // const result = await LmsGame.destroy({
+      //   where: {
+      //     gameId: clonedGame.gameId,
+      //   },
+      // });
+      // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
+
     }
-    return res.status(200).json({
-      status: "Success",
-      message: "Game Duplicated successfully.",
-      data: sendData,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error.message,
-    });
+    if(index===0){
+      const relfectionToClone = await ReflectionQuestion.findAll({
+        where: {
+          refGameId: id // Replace 'yourValue' with the actual value you're searching for
+        }
+  
+      });
+      
+      if (relfectionToClone) {
+        for (const ref of relfectionToClone) {
+  
+          const clonedRelfection = await ReflectionQuestion.create({
+            ...ref.get(),
+            refId: null, // Set id to null to create a new record
+            refGameId: setExtenstion[0]
+          });
+  
+        }
+      }
+    }
+   
+
+
+
+   
+  } else {
+   
+   return  res.status(400).json({ status: 'Failure', message: 'Game Not Duplicated .' });
   }
-};
+
+  
+}));
+let sendData=[];
+if ( setExtenstion.length > 0) { // Check if setExtenstion is not empty
+   sendData = await LmsGame.findAll({
+    where: {
+      gameId: setExtenstion[0]
+    }
+  });
+  return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+}else{
+  
+}
+return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+
+  } catch(error) {
+
+    res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error.message });
+  }
+
+}
 const gameDelete = async (req, res) => {
   try {
     const id = req?.params?.id;
     const record = await LmsGame.findByPk(id);
     if (!record) {
-      return res
-        .status(404)
-        .json({ status: "Failure", error: "Record not found" });
+      return res.status(404).json({ status: 'Failure', error: 'Record not found' });
     }
 
     // Corrected syntax for the update method
-    const gamedelete = await LmsGame.update(
-      { gameDeleteStatus: "YES" },
-      {
-        where: {
-          gameExtensionId: id,
-        },
+    const gamedelete = await LmsGame.update({ gameDeleteStatus: 'YES' }, {
+      where: {
+        gameExtensionId: id
       }
-    );
+    });
 
     // await record.destroy();
 
-    res
-      .status(200)
-      .json({ status: "Success", message: "Record Successfully Deleted" });
-  } catch (error) {
-    // Corrected variable name
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error,
-    });
+    res.status(200).json({ status: 'Success', message: 'Record Successfully Deleted' });
+  } catch (error) { // Corrected variable name
+    res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error });
   }
-};
+}
 const gameLearnersList = async (req, res) => {
   try {
     const LoginUserRole = req.user.user.role;
@@ -1172,25 +1163,25 @@ const gameLearnersList = async (req, res) => {
     const getlearners = await learners.findAll({
       where: {
         lenCreatorId: LoginUserId,
-        lenDeleteStatus: "NO",
-        lenStatus: "Active",
+        lenDeleteStatus: 'NO',
+        lenStatus: 'Active',
       },
     });
 
     const getassignlist = await gamessign.findAll({
-      attributes: ["gaLearnerId"],
+      attributes: ['gaLearnerId'],
       where: {
         gaGameId: id,
-        gaDeleteStatus: "NO",
+        gaDeleteStatus: 'NO',
       },
     });
-
+    
     // Extracting gaLearnerId values into an array
-    const learnerIdsArray = getassignlist.map((item) => item.gaLearnerId);
+    const learnerIdsArray = getassignlist.map(item => item.gaLearnerId);
 
     res.status(200).json({
-      status: "Success",
-      message: "Record Successfully Deleted",
+      status: 'Success',
+      message: 'Record Successfully Deleted',
       learner: getlearners,
       assign: learnerIdsArray,
     });
@@ -1203,13 +1194,15 @@ const gameLearnersList = async (req, res) => {
   }
 };
 
+
 const textToSpeech = async (req, res) => {
   // const text = req.query.text || 'Hello, bakiya?';
   // const lang = req.query.lang || 'en';
+
   // const tts = new gtts(text, lang);
   // tts.save('output.mp3', (err, result) => {
   //   if (err) {
-  //  // console.error(err);
+  //     console.error(err);
   //     res.status(500).send('Internal Server Error');
   //   } else {
   //     res.sendFile(__dirname + '/output.mp3');
@@ -1218,179 +1211,116 @@ const textToSpeech = async (req, res) => {
 };
 const gameQuestionDuplicateEntire = async (req, res) => {
   try {
-    const { key, questNo } = req.body;
+
+    const { key ,questNo } = req.body; 
 
     const id = req?.params?.id;
 
-    if (!key)
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "key not found" });
+    if(!key) return res.status(400).json({ status: "Failure", message: "key not found"});
 
     const getGameExtensionId = await LmsGame.findOne({
-      attributes: ["gameExtensionId"],
-      where: {
-        gameId: id,
-        gameDeleteStatus: "No",
-      },
-      order: [["gameId", "ASC"]],
+      attributes: ['gameExtensionId'],
+      where: { 
+        gameId:id,
+      gameDeleteStatus:'No'},
+      order: [['gameId', 'ASC']]
     });
 
     const getGameExtensionCounts = await LmsGame.count({
       where: {
         gameExtensionId: getGameExtensionId.gameExtensionId,
-        gameDeleteStatus: "No",
-      },
+        gameDeleteStatus: 'No'
+      }
     });
 
-    const getGameExtensionCount = getGameExtensionCounts + 1;
-    const gameToClone = await LmsGame.findByPk(id);
-    if (!gameToClone)
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Game not Found" });
+   const getGameExtensionCount=getGameExtensionCounts+1
+   const gameToClone = await LmsGame.findByPk(id);
+   if (!gameToClone)return res.status(400).json({ status: "Failure", message: "Game not Found" });
 
-    const clonedGame = await LmsGame.create({
-      ...gameToClone.toJSON(),
-      gameId: null,
-      gameExtensionId: gameToClone.gameExtensionId
-        ? gameToClone.gameExtensionId
-        : gameToClone.gameId,
-      gameQuestNo: getGameExtensionCount,
-    });
-    if (key === "Entire") {
-      if (!clonedGame)
-        return res
-          .status(400)
-          .json({ status: "Failure", message: "Game Not Duplicated." });
+   const clonedGame = await LmsGame.create({
+     ...gameToClone.toJSON(),
+     gameId: null,
+     gameExtensionId:gameToClone.gameExtensionId ?gameToClone.gameExtensionId: gameToClone.gameId,
+     gameQuestNo :getGameExtensionCount
+   });
+    if(key === 'Entire')
+    {
+     
+      if (!clonedGame) return res.status(400).json({ status: "Failure", message: "Game Not Duplicated." });
 
       if (clonedGame) {
+
         const blocksToClone = await LmsBlocks.findAll({
           where: {
-            blockGameId: id, // Replace 'yourValue' with the actual value you're searching for
-            blockQuestNo: questNo,
-          },
+            blockGameId: id ,// Replace 'yourValue' with the actual value you're searching for
+            blockQuestNo:questNo
+          }
+  
         });
         if (blocksToClone) {
           for (const block of blocksToClone) {
-            const parts = block.blockPrimarySequence.split(".");
 
-            block.blockQuestNo = getGameExtensionCount;
-
-            block.blockPrimarySequence = getGameExtensionCount + "." + parts[1];
-
-            const dragParts = block.blockDragSequence.split(".");
-
-            block.blockDragSequence =
-              getGameExtensionCount + "." + dragParts[1];
-
+              const parts = block.blockPrimarySequence.split(".");
+              
+            block.blockQuestNo=getGameExtensionCount;
+              
+              block.blockPrimarySequence = getGameExtensionCount + "." + parts[1];
+            
+         
+              const dragParts = block.blockDragSequence.split(".");
+        
+              block.blockDragSequence = getGameExtensionCount + "." + dragParts[1];
+            
             const clonedBlock = await LmsBlocks.create({
               ...block.get(),
-              blockId: null,
+              blockId:null,
               blockGameId: id,
             });
-
+           
             await clonedBlock.save();
+            
+              const QuestionsOptionToClone = await lmsQuestionOptions.findAll({
+                where: {
+                  qpQuestionId: block.blockId,
+                }
+              });
+            
+              if (QuestionsOptionToClone) {
+               
+                for (const option of QuestionsOptionToClone) {
 
-            const QuestionsOptionToClone = await lmsQuestionOptions.findAll({
-              where: {
-                qpQuestionId: block.blockId,
-              },
-            });
+                  const clonedOption = await lmsQuestionOptions.create({
+                    ...option.get(),
+                    qpOptionId:null,
+                    qpQuestNo:getGameExtensionCount,
+                    qpQuestionId: clonedBlock.blockId,
+                    qpGameId:id,
+                    qpSequence:clonedBlock.blockPrimarySequence
+                  });
 
-            if (QuestionsOptionToClone) {
-              for (const option of QuestionsOptionToClone) {
-                const clonedOption = await lmsQuestionOptions.create({
-                  ...option.get(),
-                  qpOptionId: null,
-                  qpQuestNo: getGameExtensionCount,
-                  qpQuestionId: clonedBlock.blockId,
-                  qpGameId: id,
-                  qpSequence: clonedBlock.blockPrimarySequence,
-                });
-
-                await clonedOption.save();
+               
+                  await clonedOption.save();
+                 
+                }
               }
-            }
+            
+  
           }
+
         } else {
           const result = await LmsGame.destroy({
             where: {
               gameId: clonedGame.gameId,
             },
           });
-          res.status(400).json({
-            message: "Stroy Not In the Game .",
-            data: clonedGame.gameId,
-          });
+          res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
+  
         }
 
-        return res.status(200).json({
-          status: "Success",
-          message: "Game Duplicated successfully.",
-          data: clonedGame,
-        });
+       return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: clonedGame });
       } else {
-        return res
-          .status(400)
-          .json({ status: "Failure", message: "Game Not Duplicated ." });
+        return  res.status(400).json({ status: 'Failure', message: 'Game Not Duplicated .' });
       }
-
-      // const question = await LmsBlocks.findAll({where:{blockGameId:id}});
-
-      // if (!question) return res.status(400).json({ status: "Failure", message: "Block Not Found." });
-      // const newquestion = question.map(obj => {
-      //   // Extract the number after the dot in blockPrimarySequence
-      //   const parts = obj.blockPrimarySequence.split(".");
-      //   const fristpart = parts[0];
-
-      //   // Increment the last part by 1
-      //   const newFristPart = parseInt(fristpart, 10) + 1;
-
-      //   // Replace the last part in blockPrimarySequence
-      //   obj.blockPrimarySequence = newFristPart + "." + parts[1];
-
-      //   // Repeat the process for blockDragSequence
-      //   const dragParts = obj.blockDragSequence.split(".");
-      //   const newDragLastPart = parseInt(dragParts[0], 10) + 1;
-      //   obj.blockDragSequence = newDragLastPart + "." + dragParts[1];
-
-      //   return obj; // Return the modified object
-      // });
-
-      // const duplicatedBlocks = question.map((newquestion) => ({
-      //   ...newquestion.toJSON(),
-      //   blockId: null,
-      //   blockGameId:clonedGame.gameId,
-      // }));
-
-      // const createdBlocks = await LmsBlocks.bulkCreate(duplicatedBlocks);
-      // const questionOption = await lmsquestionsoption.findAll({where:{qpGameId:id}});
-      // const newquestionOptions = questionOption.map(obj => {
-      //   // Extract the number after the dot in blockPrimarySequence
-      //   const parts = obj.qpSequence.split(".");
-      //   const fristpart = parts[0];
-
-      //   // Increment the last part by 1
-      //   const newFristPart = parseInt(fristpart, 10) + 1;
-
-      //   // Replace the last part in blockPrimarySequence
-      //   obj.qpSequence = newFristPart + "." + parts[1];
-
-      //   // Repeat the process for blockDragSequence
-
-      //   return obj; // Return the modified object
-      // });
-      // const duplicatedOptions = questionOption.map((newquestionOptions) => ({
-      //   ...newquestionOptions.toJSON(),
-      //   qpOptionId: null,
-      //   qpGameId:clonedGame.gameId,
-      // }));
-      // const createdOption = await lmsquestionsoption.bulkCreate(duplicatedOptions);
-
-      // if (!createdBlocks || createdBlocks.length === 0)
-      // return res.status(400).json({ status: "Failure", message: "Block not Duplicated",data:question });
-      // return res.status(200).json({status: "Success",message: "Game Duplicated successfully.",data: clonedGame});
     }
 
     if (!clonedGame) {
@@ -1483,11 +1413,6 @@ const getDefaultSkill = async (req, res) => {
         },
       });
     }
-    //  else {
-    //   whereClause = {
-    //     crDefaultStatus: 'YES',
-    //   };
-    // }
 
     res.status(200).json({
       status: "Success",
@@ -1687,7 +1612,6 @@ const StroyInserting = async (req, res) => {
   try {
     const id = req.params.id;
     const data = req.body;
-
     const alp = data.alphabet;
     const inputFiled = data.input;
     const alpArray = Object.values(alp);
@@ -1998,7 +1922,7 @@ const StroyInserting = async (req, res) => {
                 },
               });
             }
-            // return res.status(500).json({ status: 'Failuress', error: result   });
+            
             if (results) {
               setArray.push("result" + result.blockId);
               const objectsWithId1_1 = alpArray.filter(
@@ -2034,17 +1958,7 @@ const StroyInserting = async (req, res) => {
                 const key = beforeKey.replace(/'/g, "");
 
                 try {
-                  // ansObject
-
-                  // optionsObject
-                  // feedbackObject
-                  // responseObject
-                  // optionTitleObject
-                  // optionsemotionObject
-                  // optionsvoiceObject
-                  // responseemotionObject
-                  // scoreObject
-                  // navigateObjects
+                  
                   if (interactionBlock) {
                   }
 
@@ -2250,18 +2164,7 @@ const StroyInserting = async (req, res) => {
                 const key = beforeKey.replace(/'/g, "");
                 try {
                   setArray.push(key);
-                  // ansObject
-
-                  // optionsObject
-                  // feedbackObject
-                  // responseObject
-                  // optionTitleObject
-                  // optionsemotionObject
-                  // optionsvoiceObject
-                  // responseemotionObject
-                  // scoreObject
-                  // navigateObjects
-                  //navigateshowObjects
+                  
                   const responseEmotion =
                     foundItem?.responseemotionObject?.[key] ?? "";
                   const NextOption = foundItem?.navigateObjects?.[key] ?? "";
@@ -2396,63 +2299,632 @@ const StroyInserting = async (req, res) => {
 };
 const GetStroy = async (req, res) => {
   try {
-    let id = req.params.id;
-    let questNos = req.body.quest;
+    let  id = req.params.id;
+    let questNos =req.body.quest
 
-    let stroy = await LmsBlocks.findAndCountAll({
-      where: {
-        blockGameId: id,
-        blockDeleteStatus: "NO",
-        blockQuestNo: questNos,
-      },
-      order: [["blockPrimarySequence", "ASC"]],
+  let  stroy = await LmsBlocks.findAndCountAll({
+    where: { blockGameId: id ,
+      blockDeleteStatus: 'NO',
+      blockQuestNo:questNos},
+    order: [['blockPrimarySequence', 'ASC']] 
+  });
+  
+  let  resultObject = {};
+  let  itemObject = {};
+  let  alpabetObject = {};
+  let interactionBlockObject={};
+     let maxInput = -Infinity;
+     const alpabetObjectsArray = [];
+     const pushoption = [];
+let lastItem;
+
+const alpacount = await lmsQuestionOptions.findOne({
+  attributes: ['qpSecondaryId'],
+  where: { qpGameId: id },
+  order: [['qpOptionId', 'DESC']],
+  limit: 1,
+});
+
+let j=0;
+let idCounter = 1;
+let upNextCounter = 2;
+for (let  [index, result] of stroy.rows.entries()) {
+  let optionsObject={};
+  let ansObject={};
+  let feedbackObject={};
+  let responseObject={};
+  let optionTitleObject={};
+  let optionsemotionObject={};
+  let optionsvoiceObject={};
+  let responseemotionObject={};
+  let scoreObject={};
+  let navigateObjects={};
+  let navigateshowObjects={};
+  
+    // Assuming blockSecondaryId is the property you want to use as the key
+    let  key = result.blockChoosen+result.blockSecondaryId;
+    let currentVersion = result.blockPrimarySequence;
+    let major = currentVersion.split('.');
+    // Construct the value object with the desired properties
+    if(result.blockChoosen==='Note'){
+      let value = {
+        id: result.blockDragSequence,
+        // Add other properties as needed
+        note: result.blockText,
+        status: 'yes',
+        Notenavigate: result.blockLeadTo,
+        NoteleadShow:result.blockShowNavigate,
+        // Add other properties as needed
+      };
+      resultObject[key] = value;
+    }
+   if(result.blockChoosen==='Dialog'){
+    let value = {
+      id: result.blockDragSequence,
+      dialog: result.blockText,
+      character: result.blockRoll,
+      animation: result.blockCharacterposesId,
+      voice: result.blockVoiceEmotions,
+      DialogleadShow: result.blockShowNavigate,
+      Dialognavigate: result.blockLeadTo,
+    };
+    
+   
+    
+  
+  resultObject[key] = value;
+}
+
+
+if (result.blockChoosen === 'Interaction') {
+  
+  try{
+   
+    
+    const Question = await lmsQuestionOptions.findAll({
+    where: { qpQuestionId: result.blockId,
+      qpDeleteStatus: 'NO'},
+    order: [['qpSecondaryId', 'ASC']],
+   
+  });
+   
+  console.log('Question',Question );
+  // return res.status(500).json({ status: 'Failure' ,error:result.blockId });
+  for (let  [i, rows] of Question.entries()) {
+    // Use for...of loop or Promise.all to handle async/await correctly
+    let value = {
+      seqs: major[0]+'.'+idCounter,
+      option: rows.qpOptions,
+      secondaryId: rows.qpSecondaryId,
+    };
+    /*******************
+     * optionsObject :{ a: test1 ,b: ,c: }
+     * optionsObject :{ a: test2 ,b: ,c: }
+     * 
+     * 
+     * 
+     */
+  
+    console.log('rows',rows );
+    optionsObject[rows.qpOptions]=rows.qpOptionText ? rows.qpOptionText:'';
+    ansObject[rows.qpOptions]=rows.qpTag ? rows.qpTag:'';
+
+    feedbackObject[rows.qpOptions]=rows.qpFeedback ? rows.qpFeedback:'';
+
+    responseObject[rows.qpOptions]=rows.qpResponse ? rows.qpResponse:'';
+
+    optionTitleObject[rows.qpOptions]=rows.qpTitleTag ? rows.qpTitleTag:'';
+
+    optionsemotionObject[rows.qpOptions]=rows.qpEmotion ? rows.qpEmotion:'';
+    optionsvoiceObject[rows.qpOptions]=rows.qpVoice ? rows.qpVoice:'';
+    responseemotionObject[rows.qpOptions]=rows.qpResponseEmotion ? rows.qpResponseEmotion:'';
+    scoreObject[rows.qpOptions]=rows.qpScore ? rows.qpScore:'';
+    navigateObjects[rows.qpOptions]=rows.qpNextOption ? rows.qpNextOption:'';
+    navigateshowObjects[rows.qpOptions]=rows.qpNavigateShow ? rows.qpNavigateShow:'';
+   
+    alpabetObjectsArray.push(value);
+    console.log('After push:', alpabetObjectsArray);
+    if(rows.qpResponse){
+      interactionBlockObject[`Resp${result.blockSecondaryId}`]=result.blockSecondaryId;
+    }
+    if(rows.qpFeedback){
+      interactionBlockObject[`Feedbk${result.blockSecondaryId}`]=result.blockSecondaryId;
+    }
+    if(rows.qpTitleTag||result.blockTitleTag){
+      interactionBlockObject[`Title${result.blockSecondaryId}`]=result.blockSecondaryId;
+    }
+  if(result.blockSkillTag){
+    interactionBlockObject[`Skills${result.blockSecondaryId}`]=result.blockSecondaryId;
+   
+  }
+  }
+  console.log('Final array:', optionsemotionObject);
+ 
+  pushoption.push(optionsObject)
+    // return res.status(500).json({ status: 'Failure' ,error:scoreObject });
+  
+  let value = {
+    QuestionsEmotion: result.blockCharacterposesId,
+    QuestionsVoice:result.blockVoiceEmotions,
+    ansObject:ansObject  ,
+    blockRoll:result.blockRoll  ,
+    feedbackObject:feedbackObject  ,
+    interaction:result.blockText  ,
+    navigateObjects:navigateObjects  ,
+    navigateshowObjects:navigateshowObjects  ,
+    optionTitleObject:optionTitleObject  ,
+    optionsObject:optionsObject  ,
+    optionsemotionObject: optionsemotionObject ,
+    optionsvoiceObject: optionsvoiceObject ,
+    quesionTitle:result.blockTitleTag  ,
+    responseObject:responseObject  ,
+    responseemotionObject:responseemotionObject  ,
+    scoreObject:scoreObject  ,
+    responseRoll:result.blockResponseRoll,
+    SkillTag:result.blockSkillTag ,
+    status:'yes',
+  };
+  
+    console.log('values',value)
+    resultObject[key] = value;
+  
+
+  
+ 
+  }catch(error){
+    return res.status(500).json({ status: 'Failure' ,error:error.message });
+  }
+ 
+}
+
+
+let  items = {
+  id: major[0]+'.'+idCounter,
+  type: result.blockChoosen,
+  upNext: major[0]+'.'+upNextCounter,
+  input: result.blockSecondaryId,
+  questNo:result.blockQuestNo
+};
+idCounter += 1;
+upNextCounter += 1;
+
+
+
+itemObject[index++] = items;
+    // Assign the value object to the key in the resultObject
+    lastItem = items.upNext;
+    maxInput = Math.max(maxInput, items.input);
+    
+  }
+ 
+  
+  // return res.status(400).json({ status: 'Success' ,error:pushoption });
+
+  for (let i = 0; i < alpabetObjectsArray.length; i++) {
+    // Get the current row from the array
+    const rows = alpabetObjectsArray[i];
+   
+    // Create a new value object
+    let value = {
+      seqs: rows.seqs,
+      option: rows.option,
+      secondaryId: rows.secondaryId,
+    };
+  
+    // Set the value in the alphabetObject using the current key
+    alpabetObject[i] = value;
+  
+    // Update key for the next iteration if needed
+    
+  
+    // You can also console.log the created object if needed
+    // console.log(alphabetObject);
+  }
+
+
+  const versionCompare = (a, b) => {
+    const versionA = a.split('.').map(Number);
+    const versionB = b.split('.').map(Number);
+
+    if (versionA[0] !== versionB[0]) {
+        return versionA[0] - versionB[0];
+    } else {
+        return versionA[1] - versionB[1];
+    }
+};
+
+// Sorting the object keys based on the version of "id"
+const sortedKeys = Object.keys(itemObject).sort((a, b) => versionCompare(itemObject[a].id, itemObject[b].id));
+
+// Creating a new object with sorted keys
+const sortedItems = {};
+sortedKeys.forEach(key => {
+    sortedItems[key] = itemObject[key];
+});
+
+ 
+
+
+  
+  // return res.status(500).json({ status: 'Failure' ,error:itemObject });
+  if (lastItem) {
+    let parts = lastItem.split('.');
+    let  minorVersion = parts[1] ? parseInt(parts[1], 10) : 0;
+
+    return res.status(200).json({
+      status: 'Success',
+      items: itemObject,
+      input: resultObject,
+      alp:alpabetObject,
+      intra:interactionBlockObject,
+      count: minorVersion,
+      maxInput:maxInput,
+      serias:parts[0],
+      alpacount: alpacount?.qpSecondaryId??null,
+      sortedItems:sortedItems
+    });
+  } else {
+
+    
+    return res.status(200).json({
+      status: 'Success',
+      items: itemObject,
+      input: resultObject,
+      alp:alpabetObject,
+      intra:interactionBlockObject,
+      count: 1,
+      maxInput:maxInput,
+      serias:questNos,
+      alpacount: alpacount?.qpSecondaryId??null
+
+     
+    });
+  }
+} catch (error) {
+  return res.status(500).json({ status: 'Failure' ,error:error.message });
+}
+};
+
+const ListStroy = async (req, res) => {
+  try {
+    let  id = req.params.id;
+    let BlockObject={};
+    let gameList=[];
+    let gameIn=[];
+    const getGameExtensionId = await LmsGame.findOne({
+      attributes: ['gameExtensionId'],
+      where: { 
+        gameId:id,
+      gameDeleteStatus:'No'},
+      order: [['gameId', 'ASC']]
     });
 
+if(getGameExtensionId.gameExtensionId){
+
+  gameList = await LmsGame.findAll({
+    attributes: ['gameId','gameQuestNo','gameExtensionId'],
+    where: { 
+      gameExtensionId:getGameExtensionId.gameExtensionId,
+    gameDeleteStatus:'No'},
+    order: [['gameId', 'ASC']]
+  });
+ 
+gameIn = gameList.map((al) => al.gameId);
+const getBlocks = await LmsBlocks.findAll({
+where: {
+ 
+  blockGameId: {
+    [Op.in]: gameIn ,
+  },
+  blockDeleteStatus:'NO',
+},
+});
+
+ if(getBlocks){
+
+ 
+for (let  [i, rows] of getBlocks.entries()) {
+
+let value = {
+  id: rows.blockPrimarySequence,
+  // Add other properties as needed
+  type: rows.blockChoosen,
+  input: rows.blockSecondaryId,
+  gameId:rows.blockGameId,
+  questNo:rows.blockQuestNo
+  // Add other properties as needed
+};
+BlockObject[i]=value
+}
+}
+
+}
+     
+
+return res.status(200).json({
+  status: 'Success',
+  BlockObject: BlockObject, 
+  gameIn:gameList,
+});
+
+    
+  } catch (error) {
+    return res.status(500).json({ status: 'Failure' ,error:error.message });
+  }
+  };
+  const viewHistroyMaintance = async (req, res) => {
+
+    try {
+      let  id = req.params.id;
+      const LoginUserId = req.user.user.id;
+
+      const checkviewer = await LmsGame.findOne({
+        where: { 
+          gameId: id,
+          [Op.or]: [
+            {
+              gameCreatorUserId: LoginUserId
+            },
+            {
+              gameAnotherCreatorId: LoginUserId
+  
+            },
+  
+          ],
+        }
+      });
+      if(!checkviewer){
+//         const repeatview = await gameHistory.findOne({
+//           where: { 
+//             gvgameId: id,
+//             gvViewUserId:LoginUserId
+//           }
+//         });
+// if(!repeatview){
+  const result = await gameHistory.create({
+    gvgameId:id ,
+    gvViewUserId:LoginUserId,
+    gvIpAddress:req.connection.remoteAddress,
+    gvUserAgent:req.headers["user-agent"] ,
+    gvDeviceType:req.device.type ,
+    createdAt:Date.now() 
+  });
+
+
+// }
+
+
+      }
+
+      return res.status(200).json({
+        status: 'Success',
+      });
+
+  
+    }catch (error) {
+      return res.status(500).json({ status: 'Failure' ,error:error.message });
+    }
+
+  
+  }
+  const exitTemplateOpen = async (req, res) => {
+
+    try {
+
+      const id = req?.params?.id;
+      const integerValue = parseInt(1, 10);
+  const getAllgame= await LmsGame.findAll({
+    where:{
+      gameExtensionId:id
+    }
+    ,
+    order: [['gameId', 'ASC']],
+  })
+   
+  
+  let setExtenstion=[];
+  const processedGames = await Promise.all(getAllgame.map(async (game, index) => {
+    
+    const gameToClone = await LmsGame.findByPk(game.gameId);
+    let taketile= gameToClone?.gameTitle?.split('_');
+    const currentDate = new Date();
+  const formattedDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+  const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
+  
+  // Create newTitle with current date and time
+  let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
+    const clonedGame = LmsGame.build({
+      ...gameToClone.get(), // Using spread syntax to copy all fields
+     gameId: null, // Set id to null to create a new record
+        // Modify specific fields here
+        // gameLastTabArray:JSON.stringify([integerValue]),
+        gameLastTab:111,
+        gameGameStage: 'Creation',
+        gameExtensionId:null,
+        gameDuplicated:'NO',
+        gameStageDate:Date.now(),
+        gameCreatedDatetime:Date.now(),
+        gameIpAddress: req.connection.remoteAddress,
+        gameUserAgent: req.headers["user-agent"],
+        gameCreatedUserId : req.user.user.id,
+         gameCreatorUserId : req.user.user.id,
+     
+  
+      });
+    await clonedGame.save();
+  
+    if(clonedGame && index=== 0){
+      
+      
+      setExtenstion.push(clonedGame.gameId);
+    }
+        //  return false;
+     const gameup= await LmsGame.update(
+        { gameExtensionId: setExtenstion[0] },
+        {
+          where: {
+            gameId: clonedGame.gameId
+          }
+        }
+      );
+      console.log('setExtenstion',setExtenstion[0]);
+  console.log('clonedGame.gameId',gameup,index);
+    
+    
+    if (clonedGame) {
+      const blocksToClone = await LmsBlocks.findAll({
+        where: {
+          blockGameId: id,
+          blockQuestNo:clonedGame.gameQuestNo,// Replace 'yourValue' with the actual value you're searching for
+        }
+  
+      });
+     
+      if (blocksToClone) {
+        for (const block of blocksToClone) {
+          // Perform your actions for each block here
+          // For example, clone the block or perform any other operation
+          const clonedBlock = await LmsBlocks.create({
+            ...block.get(),
+            blockId:null,
+            blockGameId: setExtenstion[0],
+           
+          });
+          await clonedBlock.save();
+          if (clonedBlock) {
+            const QuestionsOptionToClone = await lmsQuestionOptions.findAll({
+              where: {
+                qpQuestionId: block.blockId,
+              }
+            });
+  
+            if (QuestionsOptionToClone) {
+              for (const option of QuestionsOptionToClone) {
+                const clonedOption = await lmsQuestionOptions.create({
+                  ...option.get(),
+                  qpOptionId:null,
+                  qpQuestionId: clonedBlock.blockId,
+                  qpGameId:setExtenstion[0]
+                });
+                await clonedOption.save();
+  
+              }
+            }
+          }
+  
+        }
+      } else {
+        // const result = await LmsGame.destroy({
+        //   where: {
+        //     gameId: clonedGame.gameId,
+        //   },
+        // });
+        // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
+  
+      }
+      if(index===0){
+        const relfectionToClone = await ReflectionQuestion.findAll({
+          where: {
+            refGameId: id // Replace 'yourValue' with the actual value you're searching for
+          }
+    
+        });
+        
+        if (relfectionToClone) {
+          for (const ref of relfectionToClone) {
+    
+            const clonedRelfection = await ReflectionQuestion.create({
+              ...ref.get(),
+              refId: null, // Set id to null to create a new record
+              refGameId: setExtenstion[0]
+            });
+    
+          }
+        }
+      }
+     
+  
+  
+  
+     
+    } else {
+     
+     return  res.status(400).json({ status: 'Failure', message: 'Game Not Duplicated .' });
+    }
+  
+    
+  }));
+  let sendData=[];
+  if ( setExtenstion.length > 0) { // Check if setExtenstion is not empty
+     sendData = await LmsGame.findAll({
+      where: {
+        gameId: setExtenstion[0]
+      }
+    });
+    return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+  }
+  return res.status(200).json({ status: 'Success', message: 'Game Duplicated successfully.', data: sendData });
+  
+    } catch(error) {
+  
+      res.status(500).json({ status: 'Failure', message: "Internal Server Error", err: error.message });
+    }
+  
+  
+  
+  
+  }
+
+  const GetPreview = async (req, res) => {
+    try {
+    let id = req.params.id;
+  
+    let stroy = await LmsBlocks.findAndCountAll({
+      where: { blockGameId: id, blockDeleteStatus: "NO" },
+      order: [["blockPrimarySequence", "ASC"]], // Use 'DESC' for descending order
+    });
+  
     let resultObject = {};
     let itemObject = {};
     let alpabetObject = {};
+    let optionsObject = {};
+    let ansObject = {};
+    let feedbackObject = {};
+    let responseObject = {};
+    let optionTitleObject = {};
+    let optionsemotionObject = {};
+    let optionsvoiceObject = {};
+    let responseemotionObject = {};
+    let scoreObject = {};
+    let navigateObjects = {};
+    let navigateshowObjects = {};
     let interactionBlockObject = {};
     let maxInput = -Infinity;
     const alpabetObjectsArray = [];
-    const pushoption = [];
     let lastItem;
-
+  
     const alpacount = await lmsQuestionOptions.findOne({
       attributes: ["qpSecondaryId"],
       where: { qpGameId: id },
       order: [["qpOptionId", "DESC"]],
       limit: 1,
     });
-
+  
     let j = 0;
     let idCounter = 1;
     let upNextCounter = 2;
     for (let [index, result] of stroy.rows.entries()) {
-      let optionsObject = {};
-      let ansObject = {};
-      let feedbackObject = {};
-      let responseObject = {};
-      let optionTitleObject = {};
-      let optionsemotionObject = {};
-      let optionsvoiceObject = {};
-      let responseemotionObject = {};
-      let scoreObject = {};
-      let navigateObjects = {};
-      let navigateshowObjects = {};
-
-      // Assuming blockSecondaryId is the property you want to use as the key
       let key = result.blockChoosen + result.blockSecondaryId;
       let currentVersion = result.blockPrimarySequence;
+  
       let major = currentVersion.split(".");
       // Construct the value object with the desired properties
       if (result.blockChoosen === "Note") {
         let value = {
           id: result.blockDragSequence,
-          // Add other properties as needed
+  
           note: result.blockText,
           status: "yes",
-          Notenavigate: result.blockLeadTo,
-          NoteleadShow: result.blockShowNavigate,
           // Add other properties as needed
         };
         resultObject[key] = value;
@@ -2464,191 +2936,156 @@ const GetStroy = async (req, res) => {
           character: result.blockRoll,
           animation: result.blockCharacterposesId,
           voice: result.blockVoiceEmotions,
-          DialogleadShow: result.blockShowNavigate,
-          Dialognavigate: result.blockLeadTo,
+          // Add other properties as needed
         };
-
         resultObject[key] = value;
       }
-
+  
       if (result.blockChoosen === "Interaction") {
-        try {
-          const Question = await lmsQuestionOptions.findAll({
-            where: { qpQuestionId: result.blockId, qpDeleteStatus: "NO" },
-            order: [["qpSecondaryId", "ASC"]],
-          });
-
-          for (let [i, rows] of Question.entries()) {
-            // Use for...of loop or Promise.all to handle async/await correctly
-            let value = {
-              seqs: major[0] + "." + idCounter,
-              option: rows.qpOptions,
-              secondaryId: rows.qpSecondaryId,
-            };
-            /*******************
-             * optionsObject :{ a: test1 ,b: ,c: }
-             * optionsObject :{ a: test2 ,b: ,c: }
-             *
-             *
-             *
-             */
-
-            // console.log('rows',rows );
-            optionsObject[rows.qpOptions] = rows.qpOptionText
-              ? rows.qpOptionText
-              : "";
-            ansObject[rows.qpOptions] = rows.qpTag ? rows.qpTag : "";
-
-            feedbackObject[rows.qpOptions] = rows.qpFeedback
-              ? rows.qpFeedback
-              : "";
-
-            responseObject[rows.qpOptions] = rows.qpResponse
-              ? rows.qpResponse
-              : "";
-
-            optionTitleObject[rows.qpOptions] = rows.qpTitleTag
-              ? rows.qpTitleTag
-              : "";
-
-            optionsemotionObject[rows.qpOptions] = rows.qpEmotion
-              ? rows.qpEmotion
-              : "";
-            optionsvoiceObject[rows.qpOptions] = rows.qpVoice
-              ? rows.qpVoice
-              : "";
-            responseemotionObject[rows.qpOptions] = rows.qpResponseEmotion
-              ? rows.qpResponseEmotion
-              : "";
-            scoreObject[rows.qpOptions] = rows.qpScore ? rows.qpScore : "";
-            navigateObjects[rows.qpOptions] = rows.qpNextOption
-              ? rows.qpNextOption
-              : "";
-            navigateshowObjects[rows.qpOptions] = rows.qpNavigateShow
-              ? rows.qpNavigateShow
-              : "";
-
-            alpabetObjectsArray.push(value);
-            // console.log('After push:', alpabetObjectsArray);
-            if (rows.qpResponse) {
-              interactionBlockObject[`Resp${result.blockSecondaryId}`] =
-                result.blockSecondaryId;
-            }
-            if (rows.qpFeedback) {
-              interactionBlockObject[`Feedbk${result.blockSecondaryId}`] =
-                result.blockSecondaryId;
-            }
-            if (rows.qpTitleTag || result.blockTitleTag) {
-              interactionBlockObject[`Title${result.blockSecondaryId}`] =
-                result.blockSecondaryId;
-            }
-            if (result.blockSkillTag) {
-              interactionBlockObject[`Skills${result.blockSecondaryId}`] =
-                result.blockSecondaryId;
-            }
-          }
-
-          pushoption.push(optionsObject);
-          // return res.status(500).json({ status: 'Failure' ,error:scoreObject });
-
+        // try {
+        const Question = await lmsQuestionOptions.findAll({
+          where: { qpQuestionId: result.blockId, qpDeleteStatus: "NO" },
+          order: [["qpSecondaryId", "ASC"]],
+        });
+        for (let [i, rows] of Question.entries()) {
+          // Use for...of loop or Promise.all to handle async/await correctly
           let value = {
-            QuestionsEmotion: result.blockCharacterposesId,
-            QuestionsVoice: result.blockVoiceEmotions,
-            ansObject: ansObject,
-            blockRoll: result.blockRoll,
-            feedbackObject: feedbackObject,
-            interaction: result.blockText,
-            navigateObjects: navigateObjects,
-            navigateshowObjects: navigateshowObjects,
-            optionTitleObject: optionTitleObject,
-            optionsObject: optionsObject,
-            optionsemotionObject: optionsemotionObject,
-            optionsvoiceObject: optionsvoiceObject,
-            quesionTitle: result.blockTitleTag,
-            responseObject: responseObject,
-            responseemotionObject: responseemotionObject,
-            scoreObject: scoreObject,
-            responseRoll: result.blockResponseRoll,
-            SkillTag: result.blockSkillTag,
-            status: "yes",
+            seqs: major[0] + "." + idCounter,
+            option: rows.qpOptions,
+            secondaryId: rows.qpSecondaryId,
           };
-
-          // console.log('values',value)
-          resultObject[key] = value;
-        } catch (error) {
-          return res
-            .status(500)
-            .json({ status: "Failure", error: error.message });
+          // Ensure optionsObject[key] is initialized as an object
+          if (!optionsObject[key]) {
+            optionsObject[key] = {};
+          }
+          optionsObject[key][rows.qpOptions] = rows.qpOptionText
+            ? rows.qpOptionText
+            : "";
+          ansObject[rows.qpOptions] = rows.qpTag ? rows.qpTag : "";
+          feedbackObject[rows.qpOptions] = rows.qpFeedback ? rows.qpFeedback : "";
+          responseObject[rows.qpOptions] = rows.qpResponse ? rows.qpResponse : "";
+          optionTitleObject[rows.qpOptions] = rows.qpTitleTag
+            ? rows.qpTitleTag
+            : "";
+          optionsemotionObject[rows.qpOptions] = rows.qpEmotion
+            ? rows.qpEmotion
+            : "";
+          optionsvoiceObject[rows.qpOptions] = rows.qpVoice ? rows.qpVoice : "";
+          responseemotionObject[rows.qpOptions] = rows.qpResponseEmotion
+            ? rows.qpResponseEmotion
+            : "";
+          scoreObject[rows.qpOptions] = rows.qpScore ? rows.qpScore : "";
+          navigateObjects[rows.qpOptions] = rows.qpNextOption
+            ? rows.qpNextOption
+            : "";
+          navigateshowObjects[rows.qpOptions] = rows.qpNavigateShow
+            ? rows.qpNavigateShow
+            : "";
+  
+          alpabetObjectsArray.push(value);
         }
+        if (responseObject.length !== 0) {
+          interactionBlockObject[`Resp${result.blockSecondaryId}`] =
+            result.blockSecondaryId;
+        }
+        if (feedbackObject.length !== 0) {
+          interactionBlockObject[`Feedbk${result.blockSecondaryId}`] =
+            result.blockSecondaryId;
+        }
+        if (optionTitleObject.length !== 0) {
+          interactionBlockObject[`Title${result.blockSecondaryId}`] =
+            result.blockSecondaryId;
+        }
+        if (result.blockSkillTag) {
+          interactionBlockObject[`Skills${result.blockSecondaryId}`] =
+            result.blockSecondaryId;
+        }
+  
+        let value = {
+          QuestionsEmotion: result.blockCharacterposesId,
+          QuestionsVoice: result.blockVoiceEmotions,
+          ansObject: ansObject,
+          blockRoll: result.blockRoll,
+          feedbackObject: feedbackObject,
+          interaction: result.blockText,
+          navigateObjects: navigateObjects,
+          navigateshowObjects: navigateshowObjects,
+          optionTitleObject: optionTitleObject,
+          optionsObject: optionsObject[key],
+          optionsemotionObject: optionsemotionObject,
+          optionsvoiceObject: optionsvoiceObject,
+          quesionTitle: result.blockTitleTag,
+          responseObject: responseObject,
+          responseemotionObject: responseemotionObject,
+          scoreObject: scoreObject,
+          responseRoll: result.blockResponseRoll,
+          SkillTag: result.blockSkillTag,
+          status: "yes",
+        };
+        resultObject[key] = value;
+        // } catch (error) {
+        //   return res
+        //     .status(500)
+        //     .json({ status: "Failure", error: error.message });
+        // }
       }
-
+  
       let items = {
         id: major[0] + "." + idCounter,
         type: result.blockChoosen,
         upNext: major[0] + "." + upNextCounter,
         input: result.blockSecondaryId,
-        questNo: result.blockQuestNo,
       };
       idCounter += 1;
       upNextCounter += 1;
-
+  
+      for (let i = 0; i < alpabetObjectsArray.length; i++) {
+        // Get the current row from the array
+        const rows = alpabetObjectsArray[i];
+  
+        // Create a new value object
+        let value = {
+          seqs: rows.seqs,
+          option: rows.option,
+          secondaryId: rows.secondaryId,
+        };
+  
+        // Set the value in the alphabetObject using the current key
+        alpabetObject[i] = value;
+      }
+  
       itemObject[index++] = items;
       // Assign the value object to the key in the resultObject
       lastItem = items.upNext;
       maxInput = Math.max(maxInput, items.input);
     }
-
-    // return res.status(400).json({ status: 'Success' ,error:pushoption });
-
-    for (let i = 0; i < alpabetObjectsArray.length; i++) {
-      // Get the current row from the array
-      const rows = alpabetObjectsArray[i];
-
-      // Create a new value object
-      let value = {
-        seqs: rows.seqs,
-        option: rows.option,
-        secondaryId: rows.secondaryId,
-      };
-
-      // Set the value in the alphabetObject using the current key
-      alpabetObject[i] = value;
-
-      // Update key for the next iteration if needed
-
-      // You can also console.log the created object if needed
-      // console.log(alphabetObject);
-    }
-
     const versionCompare = (a, b) => {
       const versionA = a.split(".").map(Number);
       const versionB = b.split(".").map(Number);
-
+  
       if (versionA[0] !== versionB[0]) {
         return versionA[0] - versionB[0];
       } else {
         return versionA[1] - versionB[1];
       }
     };
-
+  
     // Sorting the object keys based on the version of "id"
     const sortedKeys = Object.keys(itemObject).sort((a, b) =>
       versionCompare(itemObject[a].id, itemObject[b].id)
     );
-
+  
     // Creating a new object with sorted keys
     const sortedItems = {};
     sortedKeys.forEach((key) => {
       sortedItems[key] = itemObject[key];
     });
-
+  
     // return res.status(500).json({ status: 'Failure' ,error:itemObject });
     if (lastItem) {
       let parts = lastItem.split(".");
       let minorVersion = parts[1] ? parseInt(parts[1], 10) : 0;
-
-      return res.status(200).json({
-        status: "Success",
+      const data = {
         items: itemObject,
         input: resultObject,
         alp: alpabetObject,
@@ -2658,619 +3095,116 @@ const GetStroy = async (req, res) => {
         serias: parts[0],
         alpacount: alpacount?.qpSecondaryId ?? null,
         sortedItems: sortedItems,
-      });
-    } else {
+      };
       return res.status(200).json({
         status: "Success",
+        message: "game stages found",
+        data: data,
+      });
+    } else {
+      const data = {
         items: itemObject,
         input: resultObject,
         alp: alpabetObject,
         intra: interactionBlockObject,
         count: 1,
         maxInput: maxInput,
-        serias: questNos,
+        serias: 1,
         alpacount: alpacount?.qpSecondaryId ?? null,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
-  }
-};
-
-const ListStroy = async (req, res) => {
-  try {
-    let id = req.params.id;
-    let BlockObject = {};
-    let gameList = [];
-    let gameIn = [];
-    const getGameExtensionId = await LmsGame.findOne({
-      attributes: ["gameExtensionId"],
-      where: {
-        gameId: id,
-        gameDeleteStatus: "No",
-      },
-      order: [["gameId", "ASC"]],
-    });
-
-    if (getGameExtensionId.gameExtensionId) {
-      gameList = await LmsGame.findAll({
-        attributes: ["gameId", "gameQuestNo", "gameExtensionId"],
-        where: {
-          gameExtensionId: getGameExtensionId.gameExtensionId,
-          gameDeleteStatus: "No",
-        },
-        order: [["gameId", "ASC"]],
-      });
-
-      gameIn = gameList.map((al) => al.gameId);
-      const getBlocks = await LmsBlocks.findAll({
-        where: {
-          blockGameId: {
-            [Op.in]: gameIn,
-          },
-          blockDeleteStatus: "NO",
-        },
-      });
-
-      if (getBlocks) {
-        for (let [i, rows] of getBlocks.entries()) {
-          let value = {
-            id: rows.blockPrimarySequence,
-            // Add other properties as needed
-            type: rows.blockChoosen,
-            input: rows.blockSecondaryId,
-            gameId: rows.blockGameId,
-            questNo: rows.blockQuestNo,
-            // Add other properties as needed
-          };
-          BlockObject[i] = value;
-        }
-      }
-    }
-
-    return res.status(200).json({
-      status: "Success",
-      BlockObject: BlockObject,
-      gameIn: gameList,
-    });
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
-  }
-};
-const viewHistroyMaintance = async (req, res) => {
-  try {
-    let id = req.params.id;
-    const LoginUserId = req.user.user.id;
-
-    const checkviewer = await LmsGame.findOne({
-      where: {
-        gameId: id,
-        [Op.or]: [
-          {
-            gameCreatorUserId: LoginUserId,
-          },
-          {
-            gameAnotherCreatorId: LoginUserId,
-          },
-        ],
-      },
-    });
-    if (!checkviewer) {
-      //         const repeatview = await gameHistory.findOne({
-      //           where: {
-      //             gvgameId: id,
-      //             gvViewUserId:LoginUserId
-      //           }
-      //         });
-      // if(!repeatview){
-      const result = await gameHistory.create({
-        gvgameId: id,
-        gvViewUserId: LoginUserId,
-        gvIpAddress: req.connection.remoteAddress,
-        gvUserAgent: req.headers["user-agent"],
-        gvDeviceType: req.device.type,
-        createdAt: Date.now(),
-      });
-
-      // }
-    }
-
-    return res.status(200).json({
-      status: "Success",
-    });
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
-  }
-};
-const exitTemplateOpen = async (req, res) => {
-  try {
-    const id = req?.params?.id;
-    const integerValue = parseInt(1, 10);
-    const getAllgame = await LmsGame.findAll({
-      where: {
-        gameExtensionId: id,
-      },
-      order: [["gameId", "ASC"]],
-    });
-
-    let setExtenstion = [];
-    const processedGames = await Promise.all(
-      getAllgame.map(async (game, index) => {
-        const gameToClone = await LmsGame.findByPk(game.gameId);
-        let taketile = gameToClone?.gameTitle?.split("_");
-        const currentDate = new Date();
-        const formattedDate = `${currentDate.getDate()}-${
-          currentDate.getMonth() + 1
-        }-${currentDate.getFullYear()}`;
-        const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
-
-        // Create newTitle with current date and time
-        let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
-        const clonedGame = LmsGame.build({
-          ...gameToClone.get(), // Using spread syntax to copy all fields
-          gameId: null, // Set id to null to create a new record
-          // Modify specific fields here
-          // gameLastTabArray:JSON.stringify([integerValue]),
-          gameLastTab: 111,
-          gameGameStage: "Creation",
-          gameExtensionId: null,
-          gameDuplicated: "NO",
-          gameStageDate: Date.now(),
-          gameCreatedDatetime: Date.now(),
-          gameIpAddress: req.connection.remoteAddress,
-          gameUserAgent: req.headers["user-agent"],
-          gameCreatedUserId: req.user.user.id,
-          gameCreatorUserId: req.user.user.id,
-        });
-        await clonedGame.save();
-
-        if (clonedGame && index === 0) {
-          setExtenstion.push(clonedGame.gameId);
-        }
-        //  return false;
-        const gameup = await LmsGame.update(
-          { gameExtensionId: setExtenstion[0] },
-          {
-            where: {
-              gameId: clonedGame.gameId,
-            },
-          }
-        );
-
-        if (clonedGame) {
-          const blocksToClone = await LmsBlocks.findAll({
-            where: {
-              blockGameId: id,
-              blockQuestNo: clonedGame.gameQuestNo, // Replace 'yourValue' with the actual value you're searching for
-            },
-          });
-
-          if (blocksToClone) {
-            for (const block of blocksToClone) {
-              // Perform your actions for each block here
-              // For example, clone the block or perform any other operation
-              const clonedBlock = await LmsBlocks.create({
-                ...block.get(),
-                blockId: null,
-                blockGameId: setExtenstion[0],
-              });
-              await clonedBlock.save();
-              if (clonedBlock) {
-                const QuestionsOptionToClone = await lmsQuestionOptions.findAll(
-                  {
-                    where: {
-                      qpQuestionId: block.blockId,
-                    },
-                  }
-                );
-
-                if (QuestionsOptionToClone) {
-                  for (const option of QuestionsOptionToClone) {
-                    const clonedOption = await lmsQuestionOptions.create({
-                      ...option.get(),
-                      qpOptionId: null,
-                      qpQuestionId: clonedBlock.blockId,
-                      qpGameId: setExtenstion[0],
-                    });
-                    await clonedOption.save();
-                  }
-                }
-              }
-            }
-          } else {
-            // const result = await LmsGame.destroy({
-            //   where: {
-            //     gameId: clonedGame.gameId,
-            //   },
-            // });
-            // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
-          }
-          if (index === 0) {
-            const relfectionToClone = await ReflectionQuestion.findAll({
-              where: {
-                refGameId: id, // Replace 'yourValue' with the actual value you're searching for
-              },
-            });
-
-            if (relfectionToClone) {
-              for (const ref of relfectionToClone) {
-                const clonedRelfection = await ReflectionQuestion.create({
-                  ...ref.get(),
-                  refId: null, // Set id to null to create a new record
-                  refGameId: setExtenstion[0],
-                });
-              }
-            }
-          }
-        } else {
-          return res
-            .status(400)
-            .json({ status: "Failure", message: "Game Not Duplicated ." });
-        }
-      })
-    );
-    let sendData = [];
-    if (setExtenstion.length > 0) {
-      // Check if setExtenstion is not empty
-      sendData = await LmsGame.findAll({
-        where: {
-          gameId: setExtenstion[0],
-        },
-      });
+      };
       return res.status(200).json({
         status: "Success",
-        message: "Game Duplicated successfully.",
-        data: sendData,
+        message: "game stages found",
+        data: data,
       });
     }
-    return res.status(200).json({
-      status: "Success",
-      message: "Game Duplicated successfully.",
-      data: sendData,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      err: error.message,
-    });
-  }
-};
-
-const GetPreview = async (req, res) => {
-  // try {
-  let id = req.params.id;
-
-  let stroy = await LmsBlocks.findAndCountAll({
-    where: { blockGameId: id, blockDeleteStatus: "NO" },
-    order: [["blockPrimarySequence", "ASC"]], // Use 'DESC' for descending order
-  });
-
-  let resultObject = {};
-  let itemObject = {};
-  let alpabetObject = {};
-  let optionsObject = {};
-  let ansObject = {};
-  let feedbackObject = {};
-  let responseObject = {};
-  let optionTitleObject = {};
-  let optionsemotionObject = {};
-  let optionsvoiceObject = {};
-  let responseemotionObject = {};
-  let scoreObject = {};
-  let navigateObjects = {};
-  let navigateshowObjects = {};
-  let interactionBlockObject = {};
-  let maxInput = -Infinity;
-  const alpabetObjectsArray = [];
-  let lastItem;
-
-  const alpacount = await lmsQuestionOptions.findOne({
-    attributes: ["qpSecondaryId"],
-    where: { qpGameId: id },
-    order: [["qpOptionId", "DESC"]],
-    limit: 1,
-  });
-
-  let j = 0;
-  let idCounter = 1;
-  let upNextCounter = 2;
-  for (let [index, result] of stroy.rows.entries()) {
-    let key = result.blockChoosen + result.blockSecondaryId;
-    let currentVersion = result.blockPrimarySequence;
-
-    let major = currentVersion.split(".");
-    // Construct the value object with the desired properties
-    if (result.blockChoosen === "Note") {
-      let value = {
-        id: result.blockDragSequence,
-
-        note: result.blockText,
-        status: "yes",
-        // Add other properties as needed
-      };
-      resultObject[key] = value;
-    }
-    if (result.blockChoosen === "Dialog") {
-      let value = {
-        id: result.blockDragSequence,
-        dialog: result.blockText,
-        character: result.blockRoll,
-        animation: result.blockCharacterposesId,
-        voice: result.blockVoiceEmotions,
-        // Add other properties as needed
-      };
-      resultObject[key] = value;
-    }
-
-    if (result.blockChoosen === "Interaction") {
-      // try {
-      const Question = await lmsQuestionOptions.findAll({
-        where: { qpQuestionId: result.blockId, qpDeleteStatus: "NO" },
-        order: [["qpSecondaryId", "ASC"]],
-      });
-      //  return res.status(500).json({ status: 'Failure' ,error:Question ,er:result.blockId});
-      // console.log("Question", Question);
-      // return res.status(500).json({ status: 'Failure' ,error:Question});
-
-      for (let [i, rows] of Question.entries()) {
-        // Use for...of loop or Promise.all to handle async/await correctly
-        let value = {
-          seqs: major[0] + "." + idCounter,
-          option: rows.qpOptions,
-          secondaryId: rows.qpSecondaryId,
-        };
-        // Ensure optionsObject[key] is initialized as an object
-        if (!optionsObject[key]) {
-          optionsObject[key] = {};
-        }
-        optionsObject[key][rows.qpOptions] = rows.qpOptionText
-          ? rows.qpOptionText
-          : "";
-        ansObject[rows.qpOptions] = rows.qpTag ? rows.qpTag : "";
-        feedbackObject[rows.qpOptions] = rows.qpFeedback ? rows.qpFeedback : "";
-        responseObject[rows.qpOptions] = rows.qpResponse ? rows.qpResponse : "";
-        optionTitleObject[rows.qpOptions] = rows.qpTitleTag
-          ? rows.qpTitleTag
-          : "";
-        optionsemotionObject[rows.qpOptions] = rows.qpEmotion
-          ? rows.qpEmotion
-          : "";
-        optionsvoiceObject[rows.qpOptions] = rows.qpVoice ? rows.qpVoice : "";
-        responseemotionObject[rows.qpOptions] = rows.qpResponseEmotion
-          ? rows.qpResponseEmotion
-          : "";
-        scoreObject[rows.qpOptions] = rows.qpScore ? rows.qpScore : "";
-        navigateObjects[rows.qpOptions] = rows.qpNextOption
-          ? rows.qpNextOption
-          : "";
-        navigateshowObjects[rows.qpOptions] = rows.qpNavigateShow
-          ? rows.qpNavigateShow
-          : "";
-
-        alpabetObjectsArray.push(value);
-      }
-      // console.log("Final array:", alpabetObjectsArray);
-      if (responseObject.length !== 0) {
-        interactionBlockObject[`Resp${result.blockSecondaryId}`] =
-          result.blockSecondaryId;
-      }
-      if (feedbackObject.length !== 0) {
-        interactionBlockObject[`Feedbk${result.blockSecondaryId}`] =
-          result.blockSecondaryId;
-      }
-      if (optionTitleObject.length !== 0) {
-        interactionBlockObject[`Title${result.blockSecondaryId}`] =
-          result.blockSecondaryId;
-      }
-      if (result.blockSkillTag) {
-        interactionBlockObject[`Skills${result.blockSecondaryId}`] =
-          result.blockSecondaryId;
-      }
-
-      let value = {
-        QuestionsEmotion: result.blockCharacterposesId,
-        QuestionsVoice: result.blockVoiceEmotions,
-        ansObject: ansObject,
-        blockRoll: result.blockRoll,
-        feedbackObject: feedbackObject,
-        interaction: result.blockText,
-        navigateObjects: navigateObjects,
-        navigateshowObjects: navigateshowObjects,
-        optionTitleObject: optionTitleObject,
-        optionsObject: optionsObject[key],
-        optionsemotionObject: optionsemotionObject,
-        optionsvoiceObject: optionsvoiceObject,
-        quesionTitle: result.blockTitleTag,
-        responseObject: responseObject,
-        responseemotionObject: responseemotionObject,
-        scoreObject: scoreObject,
-        responseRoll: result.blockResponseRoll,
-        SkillTag: result.blockSkillTag,
-        status: "yes",
-      };
-      resultObject[key] = value;
-      // } catch (error) {
-      //   return res
-      //     .status(500)
-      //     .json({ status: "Failure", error: error.message });
-      // }
-    }
-
-    let items = {
-      id: major[0] + "." + idCounter,
-      type: result.blockChoosen,
-      upNext: major[0] + "." + upNextCounter,
-      input: result.blockSecondaryId,
-    };
-    idCounter += 1;
-    upNextCounter += 1;
-
-    for (let i = 0; i < alpabetObjectsArray.length; i++) {
-      // Get the current row from the array
-      const rows = alpabetObjectsArray[i];
-
-      // Create a new value object
-      let value = {
-        seqs: rows.seqs,
-        option: rows.option,
-        secondaryId: rows.secondaryId,
-      };
-
-      // Set the value in the alphabetObject using the current key
-      alpabetObject[i] = value;
-    }
-
-    itemObject[index++] = items;
-    // Assign the value object to the key in the resultObject
-    lastItem = items.upNext;
-    maxInput = Math.max(maxInput, items.input);
-  }
-  const versionCompare = (a, b) => {
-    const versionA = a.split(".").map(Number);
-    const versionB = b.split(".").map(Number);
-
-    if (versionA[0] !== versionB[0]) {
-      return versionA[0] - versionB[0];
-    } else {
-      return versionA[1] - versionB[1];
+    } catch (error) {
+      return res.status(500).json({ status: "Failure", error: error.message });
     }
   };
-
-  // Sorting the object keys based on the version of "id"
-  const sortedKeys = Object.keys(itemObject).sort((a, b) =>
-    versionCompare(itemObject[a].id, itemObject[b].id)
-  );
-
-  // Creating a new object with sorted keys
-  const sortedItems = {};
-  sortedKeys.forEach((key) => {
-    sortedItems[key] = itemObject[key];
-  });
-
-  // return res.status(500).json({ status: 'Failure' ,error:itemObject });
-  if (lastItem) {
-    let parts = lastItem.split(".");
-    let minorVersion = parts[1] ? parseInt(parts[1], 10) : 0;
-    const data = {
-      items: itemObject,
-      input: resultObject,
-      alp: alpabetObject,
-      intra: interactionBlockObject,
-      count: minorVersion,
-      maxInput: maxInput,
-      serias: parts[0],
-      alpacount: alpacount?.qpSecondaryId ?? null,
-      sortedItems: sortedItems,
-    };
-    return res.status(200).json({
-      status: "Success",
-      message: "game stages found",
-      data: data,
-    });
-  } else {
-    const data = {
-      items: itemObject,
-      input: resultObject,
-      alp: alpabetObject,
-      intra: interactionBlockObject,
-      count: 1,
-      maxInput: maxInput,
-      serias: 1,
-      alpacount: alpacount?.qpSecondaryId ?? null,
-    };
-    return res.status(200).json({
-      status: "Success",
-      message: "game stages found",
-      data: data,
-    });
-  }
-  // } catch (error) {
-  //   return res.status(500).json({ status: "Failure", error: error.message });
-  // }
-};
-
-const sentFeedbackMail = async (req, res) => {
-  const Mails = req?.body?.data;
-  try {
-    if (!Mails || Mails.length < 0)
-      return res
-        .status(500)
-        .json({ status: "Failure", message: "mails not found", data: Mails });
-    let errorMail = false;
-    for (const mail of Mails) {
-      const mailOptions = {
-        from: "santhilamobiledev@gmail.com",
-        to: mail,
-        subject: "Regarding For Your Work",
-        text: "Hi Indhu!",
-        html: `<div><h1>Share a Review</h1><p>You can share a review for this game</p><a href='http://35.183.46.127:5555/admin/superadmin/game/creation/${req?.user?.user?.id}'/></div>`,
-      };
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          errorMail = true;
+  const sentFeedbackMail = async (req,res) =>{
+    const Mails = req?.body?.data;
+   try {
+      if(!Mails || Mails.length < 0) return res.status(500).json({ status: "Failure", message:'mails not found',data:Mails }); 
+      let errorMail = false;
+      for(const mail of Mails)
+      {
+        const mailOptions ={
+          from:'santhilamobiledev@gmail.com',
+          to:mail,
+          subject: 'Regarding For Your Work',
+          text: 'Hi Indhu!',
+          html: `<div><h1>Share a Review</h1><p>You can share a review for this game</p><a href='http://35.183.46.127:5555/admin/superadmin/game/creation/${req?.user?.user?.id}'/></div>`
         }
-      });
+        transporter.sendMail(mailOptions, (error, info)=>{
+          if (error) {
+            errorMail = true;
+           }                    
+        });
+      }
+      if(errorMail)
+      {
+        return res
+        .status(500)
+        .json({ status: "Failure", error: "Internal Server Error", err: errorMail });
+      }
+      else{
+        return res.status(200).json({
+          status: "Success",
+          message:'mail sent',
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({ status: "Failure", error: error.message });
     }
-    if (errorMail) {
-      return res.status(500).json({
-        status: "Failure",
-        error: "Internal Server Error",
-        err: errorMail,
-      });
-    } else {
-      return res.status(200).json({
-        status: "Success",
-        message: "mail sent",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
   }
-};
-const QuestDeletion = async (req, res) => {
-  try {
-    const data = req?.body;
-    // console.log(data);
-    const id = req?.params?.id;
+  const QuestDeletion = async (req,res) =>{
 
-    BlcokList = await LmsBlocks.findAll({
-      attributes: ["blockId"],
-      where: {
-        blockGameId: data.exid,
-        blockQuestNo: data.quest,
-      },
-      order: [["blockId", "ASC"]],
-    });
 
+    try{
+      const data = req?.body;
+      console.log(data);
+      const id = req?.params?.id;
+  
+      BlcokList = await LmsBlocks.findAll({
+        attributes: ['blockId'],
+        where: { 
+          blockGameId:data.exid,
+          blockQuestNo:data.quest},
+        order: [['blockId', 'ASC']]
+      });
+     
     blockIn = BlcokList.map((al) => al.blockId);
-
+  
+  
+  
+  
     const DeleteGame = await LmsGame.update(
       {
-        gameDeleteStatus: "YES",
+        gameDeleteStatus: 'YES',
       },
       {
         where: {
-          gameId: id,
+          gameId: id
         },
       }
     );
-
-    const DeleteBlock = await LmsBlocks.update(
+  
+  const DeleteBlock = await LmsBlocks.update(
       {
-        blockDeleteStatus: "YES",
+        blockDeleteStatus: 'YES',
       },
       {
         where: {
-          blockGameId: data.exid,
-          blockQuestNo: data.quest,
+          blockGameId:data.exid,
+          blockQuestNo:data.quest
         },
       }
     );
-
+  
     const questiondat = await lmsQuestionOptions.update(
       {
-        qpDeleteStatus: "YES",
+        qpDeleteStatus: 'YES',
       },
       {
         where: {
@@ -3280,384 +3214,352 @@ const QuestDeletion = async (req, res) => {
         },
       }
     );
-
+ 
     return res.status(200).json({
       status: "Success",
-      message: "Quest Deleted",
+      message:'Quest Deleted',
     });
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
-  }
-};
-const getCompletionScreen = async (req, res) => {
-  try {
-    const id = req?.params?.id;
-    let completionScreenObject = {};
 
-    const getCompletionscreens = await LmsGame.findAndCountAll({
-      where: {
-        gameExtensionId: id,
-        gameDeleteStatus: "NO",
-      },
-      order: ["gameId"],
-    });
-    if (getCompletionscreens) {
-      for (let [index, result] of getCompletionscreens.rows.entries()) {
+    }
+    catch (error) {
+      return res.status(500).json({ status: "Failure", error: error.message });
+    }
+
+  
+
+  
+  }
+  const getCompletionScreen = async (req,res) =>{
+    try{
+      const id = req?.params?.id;
+      let  completionScreenObject = {};
+
+      const getCompletionscreens = await LmsGame.findAndCountAll({
+        where: {
+          gameExtensionId: id,
+          gameDeleteStatus:'NO',
+          
+        },
+        order: ['gameId']
+      });
+      if (getCompletionscreens) {
+      for (let  [index, result] of getCompletionscreens.rows.entries()) {
+        
         const getTotalscore = await lmsQuestionOptions.findAll({
           attributes: [
-            [
-              Sequelize.fn(
-                "SUM",
-                Sequelize.literal("lmsquestionsoption.qpScore")
-              ),
-              "maxScore",
-            ],
+            [Sequelize.fn('SUM', Sequelize.literal('lmsquestionsoption.qpScore')), 'maxScore']
           ],
           where: {
             qpGameId: id,
             qpQuestNo: result.gameQuestNo,
-            qpDeleteStatus: "No",
-            qpTag: "true",
+            qpDeleteStatus: 'No',
+            qpTag: 'true',
           },
-          group: ["qpQuestNo"], // Add GROUP BY clause
+          group: ['qpQuestNo'], // Add GROUP BY clause
+        
         });
-
-        let TotalScore = getTotalscore; // Corrected access to alias name
+        
+        let TotalScore =getTotalscore;// Corrected access to alias name
+        
 
         // Loop through the getTotalscore result and extract maxScore values
-
+       
         let value = {
-          gameQuestNo: result.gameQuestNo,
-          gameTotalScore: TotalScore ?? null,
-          gameIsSetMinPassScore: result.gameIsSetMinPassScore ?? "false",
-          gameMinScore: result.gameMinScore,
-          gameIsSetDistinctionScore:
-            result.gameIsSetDistinctionScore ?? "false",
-          gameDistinctionScore: result.gameDistinctionScore,
-          gameIsSetSkillWiseScore: result.gameIsSetSkillWiseScore ?? "false",
-          gameIsSetBadge: result.gameIsSetBadge,
-          gameBadge: result.gameBadge,
-          gameBadgeName: result.gameBadgeName,
-          gameIsSetCriteriaForBadge:
-            result.gameIsSetCriteriaForBadge ?? "false",
-          gameAwardBadgeScore: result.gameAwardBadgeScore,
-          gameScreenTitle: result.gameScreenTitle
-            ? result.gameScreenTitle
-            : "Quest Complete",
-          gameCompletedCongratsMessage: result.gameCompletedCongratsMessage
-            ? result.gameCompletedCongratsMessage
-            : "Congratulations! you have Completed....",
-          gameIsSetCongratsScoreWiseMessage:
-            result.gameIsSetCongratsScoreWiseMessage ?? "false",
-          gameMinimumScoreCongratsMessage:
-            result.gameMinimumScoreCongratsMessage,
-          gameaboveMinimumScoreCongratsMessage:
-            result.gameaboveMinimumScoreCongratsMessage ?? "",
-          gameLessthanDistinctionScoreCongratsMessage:
-            result.gameLessthanDistinctionScoreCongratsMessage,
-          gameAboveDistinctionScoreCongratsMessage:
-            result.gameAboveDistinctionScoreCongratsMessage ?? "",
+         
+          gameQuestNo:result.gameQuestNo,
+          gameTotalScore:TotalScore ??null,
+          gameIsSetMinPassScore:result.gameIsSetMinPassScore??'false' ,
+          gameMinScore:result.gameMinScore ,
+          gameIsSetDistinctionScore:result.gameIsSetDistinctionScore ??'false' ,
+          gameDistinctionScore:result.gameDistinctionScore ,
+          gameIsSetSkillWiseScore:result.gameIsSetSkillWiseScore??'false' ,
+          gameIsSetBadge:result.gameIsSetBadge ,
+          gameBadge:result.gameBadge ,
+          gameBadgeName:result.gameBadgeName ,
+          gameIsSetCriteriaForBadge:result.gameIsSetCriteriaForBadge??'false' ,
+          gameAwardBadgeScore:result.gameAwardBadgeScore ,
+          gameScreenTitle:result.gameScreenTitle? result.gameScreenTitle:'Quest Complete' ,
+          gameCompletedCongratsMessage:result.gameCompletedCongratsMessage?result.gameCompletedCongratsMessage:'Congratulations! you have Completed....' ,
+          gameIsSetCongratsScoreWiseMessage:result.gameIsSetCongratsScoreWiseMessage??'false' ,
+          gameMinimumScoreCongratsMessage: result.gameMinimumScoreCongratsMessage,
+          gameaboveMinimumScoreCongratsMessage: result.gameaboveMinimumScoreCongratsMessage?? '',
+          gameLessthanDistinctionScoreCongratsMessage: result.gameLessthanDistinctionScoreCongratsMessage,
+          gameAboveDistinctionScoreCongratsMessage: result.gameAboveDistinctionScoreCongratsMessage ?? '',
         };
-
+         
+         
         completionScreenObject[index] = value;
+         
+         
       }
-    } else {
-      return res.status(400).json({ status: "Failure", error: "Game Null" });
+    }else{
+      return res.status(400).json({ status: "Failure", error: 'Game Null' });
     }
-    return res
-      .status(200)
-      .json({ status: "Success", data: completionScreenObject });
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
+      return res.status(200).json({ status: "Success", data: completionScreenObject });
+    } catch (error) {
+      return res.status(500).json({ status: "Failure", error: error.message });
+    }
+
+    
   }
-};
-const getStoryValidtion = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Bad Request" });
-    }
-
-    const gameData = await LmsGame.findOne({
-      where: { gameId: id },
-      include: [
-        {
-          model: LmsBlocks,
-          attributes: [
-            "blockGameId",
-            "blockId",
-            "blockText",
-            "blockDragSequence",
-            "blockCharacterposesId",
-            "blockQuestNo",
-          ],
-          where: {
-            blockDeleteStatus: "NO",
-          },
-        },
-        {
-          model: lmsQuestionOptions,
-          attributes: [
-            "qpGameId",
-            "qpQuestionId",
-            "qpOptionId",
-            "qpOptionText",
-            "qpTag",
-            "qpScore",
-            "qpEmotion",
-            "qpQuestNo",
-            "qpSequence",
-          ],
-          where: {
-            qpDeleteStatus: "NO",
-          },
-        },
-      ],
-    });
-
-    if (!gameData) {
-      return res.status(404).json({ error: "Record not found" });
-    }
-
-    // Check if lmsblocks array exists and is not empty
-    if (gameData.lmsblocks && gameData.lmsblocks.length > 0) {
-      const blockFields = ["blockText"];
-
-      // Check if any field within lmsblocks is empty
-      for (const field of blockFields) {
-        if (!gameData.lmsblocks[0][field]) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Block ${field}`,
-          });
-        }
+  const getStoryValidtion = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      if (!id) {
+        return res
+          .status(400)
+          .json({ status: "Failure", message: "Bad Request" });
       }
-    } else {
-      return res.status(400).json({
-        status: "Failure",
-        message: "Please Fill the Empty Fields",
+  
+      const gameData = await LmsGame.findOne({
+        where: { gameId: id },
+        include: [
+          {
+            model: LmsBlocks,
+            attributes: [
+              "blockGameId",
+              "blockId",
+              "blockText",
+              "blockDragSequence",
+              "blockCharacterposesId",
+              "blockQuestNo",
+            ],
+            where: {
+              blockDeleteStatus:'NO'
+            },
+            
+          },
+          {
+            model: lmsQuestionOptions,
+            attributes: [
+              "qpGameId",
+              "qpQuestionId",
+              "qpOptionId",
+              "qpOptionText",
+              "qpTag",
+              "qpScore",
+              "qpEmotion",
+              "qpQuestNo",
+              "qpSequence",
+            ],
+            where: {
+              qpDeleteStatus:'NO'
+            },
+          },
+        ],
       });
-    }
-
-    const uniqueQuestionIds = [
-      ...new Set(
-        gameData.lmsquestionsoptions.map((option) => option.qpQuestionId)
-      ),
-    ];
-
-    for (const questionIdToCheck of uniqueQuestionIds) {
-      const optionsForQuestionId = gameData.lmsquestionsoptions.filter(
-        (option) => option.qpQuestionId === questionIdToCheck
-      );
-
-      for (const option of optionsForQuestionId) {
-        if (!option.qpOptionText) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Plese Fill the Incomplete Fields op of Quest  ${option.qpSequence}`,
-          });
-        }
-        if (!option.qpEmotion) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Plese Fill the Incomplete Fields inpu of Quest ${option.qpOptionId}`,
-          });
-        }
+  
+      if (!gameData) {
+        return res.status(404).json({ error: "Record not found" });
       }
-
-      const hasTrueTag = optionsForQuestionId.some(
-        (option) => option.qpTag === "true"
-      );
-
-      if (!hasTrueTag) {
+  
+      // Check if lmsblocks array exists and is not empty
+      if (gameData.lmsblocks && gameData.lmsblocks.length > 0) {
+        const blockFields = [
+          "blockText",
+        ];
+  
+        // Check if any field within lmsblocks is empty
+        for (const field of blockFields) {
+          if (!gameData.lmsblocks[0][field]) {
+            return res.status(400).json({
+              status: "Failure",
+              message: `Block ${field}`,
+            });
+          }
+        }
+      } else {
         return res.status(400).json({
           status: "Failure",
-          message: `At least one option must be selected on this sequence of Quest ${optionsForQuestionId[0].qpQuestNo}`,
+          message: "Please Fill the Empty Fields",
         });
       }
+  
+      const uniqueQuestionIds = [
+        ...new Set(
+          gameData.lmsquestionsoptions.map((option) => option.qpQuestionId)
+        ),
+      ];
+  
+      for (const questionIdToCheck of uniqueQuestionIds) {
+        const optionsForQuestionId = gameData.lmsquestionsoptions.filter(
+          (option) => option.qpQuestionId === questionIdToCheck
+        );
+  
+        for (const option of optionsForQuestionId) {
 
-      for (const option of optionsForQuestionId) {
-        if (option.qpTag === "true" && option.qpScore === "") {
+          if (!option.qpOptionText) {
+            return res.status(400).json({
+              status: "Failure",
+              message: `Plese Fill the Incomplete Fields op of Quest  ${option.qpSequence}`,
+            });
+
+          }
+          if (!option.qpEmotion) {
+
+            return res.status(400).json({
+              status: "Failure",
+              message: `Plese Fill the Incomplete Fields inpu of Quest ${option.qpOptionId}`,
+            });
+
+          }
+        }
+  
+        const hasTrueTag = optionsForQuestionId.some(
+          (option) => option.qpTag === "true"
+        );
+  
+        if (!hasTrueTag) {
           return res.status(400).json({
             status: "Failure",
-            message: `Score is required for Selected Option of Quest ${option.qpQuestNo}`,
+            message: `At least one option must be selected on this sequence of Quest ${optionsForQuestionId[0].qpQuestNo}`,
           });
         }
+  
+        for (const option of optionsForQuestionId) {
+          if (option.qpTag === "true" && option.qpScore === "") {
+            return res.status(400).json({
+              status: "Failure",
+              message: `Score is required for Selected Option of Quest ${option.qpQuestNo}`,
+            });
+          }
+        }
       }
+  
+      res.status(200).json({
+        status: "Success",
+        message: "Data Retrieved Successfully",
+        data: gameData,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({
+        error: "Internal Server Error",
+        message:
+          "An error occurred while processing the request. Check the server logs for more details.",
+        err: error,
+      });
     }
-
-    res.status(200).json({
-      status: "Success",
-      message: "Data Retrieved Successfully",
-      data: gameData,
-    });
-  } catch (error) {
-    // console.error("Error:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message:
-        "An error occurred while processing the request. Check the server logs for more details.",
-      err: error,
-    });
-  }
-};
-const getTotalMinofWords = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Bad Request" });
-    }
-
-    const gameData = await LmsGame.findOne({
-      where: { gameId: id },
-      include: [
-        {
-          model: LmsBlocks,
-          attributes: [
-            "blockGameId",
-            "blockId",
-            "blockText",
-            "blockDragSequence",
-            "blockCharacterposesId",
-          ],
-        },
-        {
-          model: lmsQuestionOptions,
-          attributes: [
-            "qpGameId",
-            "qpQuestionId",
-            "qpOptionId",
-            "qpOptionText",
-            "qpTag",
-            "qpScore",
-            "qpEmotion",
-            "qpFeedback",
-            "qpResponse",
-          ],
-        },
-      ],
-    });
-
-    if (!gameData) {
-      return res.status(404).json({ error: "Record not found" });
-    }
-
-    // Calculate total word count for lmsblocks
-    const blockWordCount = gameData.lmsblocks.reduce((sum, block) => {
-      return sum + (block.blockText.split(" ").length || 0);
-    }, 0);
-
-    // Calculate total word count for question options' text, feedback, and response
-    const optionWordCount = gameData.lmsquestionsoptions.reduce(
-      (sum, option) => {
-        const optionTextWordCount = option.qpOptionText.split(" ").length || 0;
-        const feedbackWordCount = option.qpFeedback.split(" ").length || 0;
-        const responseWordCount = option.qpResponse.split(" ").length || 0;
-        return (
-          sum + optionTextWordCount + feedbackWordCount + responseWordCount
-        );
-      },
-      0
-    );
-    const averageReadingSpeed = 100;
-    const totalWordCount = blockWordCount + optionWordCount;
-    //  const totalWordCount: blockWordCount + optionWordCount;
-    const totalMinutes = Math.max(
-      1,
-      Math.ceil(totalWordCount / averageReadingSpeed)
-    );
-
-    // const totalMinutes = totalWordCount / averageReadingSpeed;
-    res.status(200).json({
-      status: "Success",
-      message: "Data Retrieved Successfully",
-      blockWordCount,
-      optionWordCount,
-      totalWordCount: blockWordCount + optionWordCount,
-      totalMinutes,
-    });
-  } catch (error) {
-    // console.error("Error:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message:
-        "An error occurred while processing the request. Check the server logs for more details.",
-      err: error,
-    });
-  }
-};
-const ComplitionUpdate = async (req, res) => {
-  try {
-    const data = req?.body;
-    const id = req?.params?.id;
-
-    // Check if data is provided
-    if (!data || Object.keys(data).length === 0) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "No data provided for update." });
-    }
-
-    // Iterate over keys and update the lmsGame table
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = data[key];
-        value.gameTotalScore = value.gameTotalScore.maxScore;
-        const { gameQuestNo, ...updateValues } = value;
-        const updateResult = await LmsGame.update(updateValues, {
-          where: {
-            gameExtensionId: id,
-            gameQuestNo: value.gameQuestNo,
+  };
+  const getTotalMinofWords = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      if (!id) {
+        return res
+          .status(400)
+          .json({ status: "Failure", message: "Bad Request" });
+      }
+  
+      const gameData = await LmsGame.findOne({
+        where: { gameId: id },
+        include: [
+          {
+            model: LmsBlocks,
+            attributes: [
+              "blockGameId",
+              "blockId",
+              "blockText",
+              "blockDragSequence",
+              "blockCharacterposesId",
+            ],
           },
-        });
+          {
+            model: lmsQuestionOptions,
+            attributes: [
+              "qpGameId",
+              "qpQuestionId",
+              "qpOptionId",
+              "qpOptionText",
+              "qpTag",
+              "qpScore",
+              "qpEmotion",
+              "qpFeedback",
+              "qpResponse",
+            ],
+          },
+        ],
+      });
+  
+      if (!gameData) {
+        return res.status(404).json({ error: "Record not found" });
+      }
+  
+      // Calculate total word count for lmsblocks
+      const blockWordCount = gameData.lmsblocks.reduce((sum, block) => {
+        return sum + (block.blockText.split(' ').length || 0);
+      }, 0);
+  
+      // Calculate total word count for question options' text, feedback, and response
+      const optionWordCount = gameData.lmsquestionsoptions.reduce((sum, option) => {
+        const optionTextWordCount = option.qpOptionText.split(' ').length || 0;
+        const feedbackWordCount = option.qpFeedback.split(' ').length || 0;
+        const responseWordCount = option.qpResponse.split(' ').length || 0;
+        return sum + optionTextWordCount + feedbackWordCount + responseWordCount;
+      }, 0);
+      const averageReadingSpeed= 100;
+      const totalWordCount = blockWordCount + optionWordCount;
+    //  const totalWordCount: blockWordCount + optionWordCount;
+    const totalMinutes = Math.max(1, Math.ceil(totalWordCount / averageReadingSpeed));
+  
+      // const totalMinutes = totalWordCount / averageReadingSpeed;
+      res.status(200).json({
+        status: "Success",
+        message: "Data Retrieved Successfully",
+        blockWordCount,
+        optionWordCount,
+        totalWordCount: blockWordCount + optionWordCount,
+        totalMinutes,
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({
+        error: "Internal Server Error",
+        message:
+          "An error occurred while processing the request. Check the server logs for more details.",
+        err: error,
+      });
+    }
+  };
 
-        if (!updateResult || updateResult[0] === 0) {
-          return res.status(404).json({
-            status: "Failure",
-            message: `Failed to update ${key} with value ${value}.`,
-          });
+  const ComplitionUpdate = async (req, res) => {
+    try {
+      const data = req?.body;
+      const id = req?.params?.id;
+  
+      // Check if data is provided
+      if (!data || Object.keys(data).length === 0) {
+        return res.status(400).json({ status: 'Failure', message: 'No data provided for update.' });
+      }
+  
+      // Iterate over keys and update the lmsGame table
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          const value = data[key];
+         value.gameTotalScore = value.gameTotalScore.maxScore
+       const { gameQuestNo, ...updateValues } = value; 
+          const updateResult = await LmsGame.update(updateValues, {
+            where: {
+              gameExtensionId: id,
+          gameQuestNo:value.gameQuestNo
+            }
+          });      
+          if (!updateResult || updateResult[0] === 0) {
+            return res.status(404).json({ status: 'Failure', message: `Failed to update ${key} with value ${value}.` });
+          }
         }
       }
+  
+      // Send success response
+      res.status(200).json({ status: 'Success', message: 'Data updated successfully.' });
+    } catch (error) {
+      // Handle any errors that may occur during the update
+      console.error('Error during update:', error);
+      res.status(500).json({ status: 'Failure', message: 'Internal Server Error', error: error.message });
     }
-
-    // Send success response
-    res
-      .status(200)
-      .json({ status: "Success", message: "Data updated successfully." });
-  } catch (error) {
-    // Handle any errors that may occur during the update
-    // console.error('Error during update:', error);
-    res.status(500).json({
-      status: "Failure",
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
-
-/**********
-   * SELECT  MAX(b.qpScore) AS maxScore 
-FROM lmsblocks AS a
-LEFT JOIN lmsquestionsoption AS b ON a.blockGameId = b.qpGameId
-WHERE a.blockChoosen = 'Interaction' AND a.blockGameId = 1 AND a.blockQuestNo = 1
-GROUP BY b.qpQuestionId;
-
-
-SELECT
-  SUM(word_count) AS total_word_count
-FROM
-  (SELECT LENGTH(blockText) - LENGTH(REPLACE(blockText, ' ', '')) +1 AS word_count, blockGameId
-   FROM lmsblocks) AS word_counts
-WHERE
-  blockGameId = 1;
-
-   */
+  };
+ 
 /**getGameCollections for review the game */
 const getGameCollections = async (req, res) => {
   const reqUuid = req.params?.uuid;
@@ -3721,9 +3623,6 @@ const getGameCollections = async (req, res) => {
               "updatedAt",
               "deletedAt",
             ],
-            // where: {
-            //   gameId: Sequelize.col("lmsreviewersgames.gameId"),
-            // }
           },
           include: [
             {
@@ -3744,7 +3643,6 @@ const getGameCollections = async (req, res) => {
                   "gasAssetImage",
                 ],
               ],
-              // required: false,
             },
             {
               model: gameHistory,
@@ -3780,7 +3678,6 @@ const getGameCollections = async (req, res) => {
             {
               model: LmsGame,
               as: "gameQuest",
-              // where: {gameDeleteStatus: "No" , gameActiveStatus:"Active"}
             }
           ],
         },
@@ -3816,7 +3713,6 @@ const getGameCollections = async (req, res) => {
       mail: reviewerGame?.lmsgamereviewer?.emailId,
       role: "Reviewer",
     };
-    // let token = await generateToken(credential);
     let gameReflectionQuest = [];
     if (reviewerGame) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
@@ -3833,7 +3729,6 @@ const getGameCollections = async (req, res) => {
     return res.status(200).json({
       result: reviewerGame,
       resultReflection: gameReflectionQuest,
-      // token: token,
       assets: {
         playerCharectorsUrl: filesWithPath ?? "",
         bgMusicUrl: bgMusic?.gasAssetImage ?? "",
@@ -3849,7 +3744,6 @@ const getFilesInDirectory = (directoryPath) => {
   return new Promise((resolve, reject) => {
     fs.readdir(directoryPath, (err, files) => {
       if (err) {
-        // reject(err);
         return err;
       } else {
         const filteredFiles = files.filter((file) => {
@@ -3900,7 +3794,6 @@ const getGamePreviewCollection = async (req, res) => {
               "gasAssetImage",
             ],
           ],
-          // required: false,
         },
         {
           model: gameHistory,
@@ -3956,21 +3849,10 @@ const getGamePreviewCollection = async (req, res) => {
       });
     }
 
-    // GameRecords.lmsgame = {
-    //   reflectionQuestions: [],
-    //   ...GameRecords?.lmsgame,
-    // };
-    // let credential = {
-    //   id: reqUuid,
-    //   name: GameRecords?.reviewerId,
-    //   mail: GameRecords?.lmsgamereviewer?.emailId,
-    //   role: "Reviewer",
-    // };
-    // let token = await generateToken(credential);
+   
     let gameReflectionQuest = [];
     if (GameRecords) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
-        // where: { refGameId: { [Op.eq]: await GameRecords.gameId } },
         where: { refGameId: { [Op.eq]: await GameRecords.gameId }, refDeleteStatus: 'No', refActiveStatus: 'Yes' },
       });
     }
@@ -3994,7 +3876,6 @@ const getGamePreviewCollection = async (req, res) => {
     return res.status(400).json({ error: error });
   }
 };
-
 const getMaxBlockQuestNo = async (req, res) => {
   try {
     const { id } = req.params;
@@ -4024,8 +3905,7 @@ const getMaxBlockQuestNo = async (req, res) => {
     });
   }
 };
-
-module.exports = {
+module.exports = {getMaxBlockQuestNo,
   uploadIntroMusic,
   uploadBadge,
   getGame,
@@ -4062,5 +3942,4 @@ module.exports = {
   getStoryValidtion,
   getGameCollections,
   getGamePreviewCollection,
-  getMaxBlockQuestNo,
 };

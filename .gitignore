@@ -32,7 +32,7 @@ test/
 yarn-error.log
 yarn.lock
 
-.DS_Store
+*.DS_Store
 
 # Zip and Rar files
 *.zip

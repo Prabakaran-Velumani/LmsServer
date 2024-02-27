@@ -207,6 +207,17 @@ let setrefkey = [];
      setrefkey.push(`ref${i+1}`);
     
     }
+    await ReflectionQuestion.update(
+      { refDeleteStatus: 'NO' },
+      {
+        where: {
+          refGameId: gameId,
+          refKey: {
+            [Op.in]: setrefkey ,
+          },
+        },
+      }
+    );
 
     const countaplNotIn = await ReflectionQuestion.count({
       where: {
