@@ -1,6 +1,6 @@
 const express = require('express');
 const {getLanguages,updatelanguages,getCreatedLanguages,updateLanguageContent,getSelectedLanguages,getBlockData,getGameStoryLine,getQuestionOptions,getQuestionOptionsText,
-    getQuestionResponse} = require('../../controllers/languages/languages.controller');
+    getQuestionResponse, getGameLanguages} = require('../../controllers/languages/languages.controller');
 const router = express.Router();
 
 
@@ -17,5 +17,5 @@ router.post('/getcreatedlanguages',getCreatedLanguages);
 router.post('/updatelanguages',updatelanguages);
 // vignesh 10-01-24
 router.post('/updatecontent',updateLanguageContent);
-
+router.get('/getGameLanguages/:id',getGameLanguages); //used for Demo game play
 module.exports = router;

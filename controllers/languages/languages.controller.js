@@ -554,7 +554,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameTitle",
+        fieldName: "gameTitle",
         textId: gameId,
       },
       raw: true,
@@ -565,7 +565,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameStoryLine",
+        fieldName: "gameStoryLine",
         textId: gameId,
       },
       raw: true,
@@ -576,7 +576,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameNonPlayerName",
+        fieldName: "gameNonPlayerName",
         textId: gameId,
       },
       raw: true,
@@ -585,7 +585,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameCompletedCongratsMessage",
+        fieldName: "gameCompletedCongratsMessage",
         textId: gameId,
       },
       raw: true,
@@ -596,7 +596,7 @@ const getGameStoryLine = async (req, res) => {
       attributes: ["content"],
       where: {
         translationId: translationId,
-        feildName: "gameScreenTitle",
+        fieldName: "gameScreenTitle",
         textId: gameId,
       },
       raw: true,
@@ -706,7 +706,7 @@ const getQuestionOptions = async (req, res) => {
       attributes: ["textId", "content"],
       where: {
         translationId: translationId,
-        feildName: "qpOptions",
+        fieldName: "qpOptions",
         textId: optionTextData.map((option) => option.qpOptionId),
       },
       raw: true,
@@ -756,7 +756,7 @@ const getQuestionResponse = async (req, res) => {
       attributes: ["textId", "content"],
       where: {
         translationId: translationId,
-        feildName: "qpResponse",
+        fieldName: "qpResponse",
         textId: optionTextData.map((option) => option.qpOptionId),
       },
       raw: true,
@@ -1498,6 +1498,48 @@ const deleteAudioFiles = async (audiosUrls = []) => {
   }
 };
 
+const getGameLanguages = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id)
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Bad request" });
+        const gameLang = await lmsGameChoosenLang.findAll({
+          where: { gameId: id },
+          attributes:[],
+          include: [{
+            model: LmsLanguages,
+            attributes:['language_Id','language_name']
+            // as: 'language'
+          }]
+        });
+        if (!gameLang || gameLang.length === 0) {
+          return res.status(200).json({
+            status: "Success",
+            message: "No data found",
+            data: []
+          });
+        }
+        const languages = gameLang.map(item => ({
+            value: item.lmsMultiLanguageSupport.language_Id,
+            label: item.lmsMultiLanguageSupport.language_name
+          }));
+    
+    return res.status(200).json({
+      status: "Success",
+      message: "Data fetched successfully",
+      data: languages
+    });
+  } catch (e) {
+    return res.status(500).json({
+      status: "Failure",
+      message: "oops! something went wrong",
+      err: e.message,
+    });
+  }
+};
+
 module.exports = {
   getLanguages,
   updatelanguages,
@@ -1509,5 +1551,5 @@ module.exports = {
   getQuestionOptions,
   getQuestionOptionsText,
   getQuestionResponse,
-  // deleteAudioFiles
+  getGameLanguages
 };
