@@ -454,9 +454,9 @@ const updateGame = async (req, res) => {
             data.gameLastTabArray = findlasttab.gameLastTabArray;
           } else {
             data.gameLastTabArray = findlasttab.gameLastTabArray;
-            console.log(
-              `Value ${data.gameLastTab} is already inside gameLastTabArray`
-            );
+            // console.log(
+            //   `Value ${data.gameLastTab} is already inside gameLastTabArray`
+            // );
           }
         } catch (error) {
           // If parsing fails, handle it accordingly
@@ -465,9 +465,9 @@ const updateGame = async (req, res) => {
 
         // Save the updated array back to the database
 
-        console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
+        // console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
       } else {
-        console.log("gameLastTabArray not found or is null");
+       // console.log("gameLastTabArray not found or is null");
       }
       // Other logic...
 
@@ -855,8 +855,8 @@ const gameDuplicate = async (req, res) => {
             },
           }
         );
-        console.log("setExtenstion", setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
+        // console.log("setExtenstion", setExtenstion[0]);
+        // console.log("clonedGame.gameId", gameup, index);
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -1047,8 +1047,8 @@ const gamePublic = async (req, res) => {
             },
           }
         );
-        console.log("setExtenstion", setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
+        // console.log("setExtenstion", setExtenstion[0]);
+        // console.log("clonedGame.gameId", gameup, index);
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -1272,8 +1272,8 @@ const gameQuestionDuplicateEntire = async (req, res) => {
         gameQuestNo: questNo, // Replace 'yourValue' with the actual value you're searching for
       },
     });
-    console.log("getgamequestid", getgamequestid[0].dataValues.gameId);
-    console.log("getgamequestid1", getgamequestid);
+    // console.log("getgamequestid", getgamequestid[0].dataValues.gameId);
+    // console.log("getgamequestid1", getgamequestid);
     const gamequestid = getgamequestid
       ? getgamequestid[0].dataValues.gameId
       : id;
@@ -2428,7 +2428,7 @@ const GetStroy = async (req, res) => {
             order: [["qpSecondaryId", "ASC"]],
           });
 
-          console.log("Question", Question);
+          // console.log("Question", Question);
           // return res.status(500).json({ status: 'Failure' ,error:result.blockId });
           for (let [i, rows] of Question.entries()) {
             // Use for...of loop or Promise.all to handle async/await correctly
@@ -2445,7 +2445,7 @@ const GetStroy = async (req, res) => {
              *
              */
 
-            console.log("rows", rows);
+            // console.log("rows", rows);
             optionsObject[rows.qpOptions] = rows.qpOptionText
               ? rows.qpOptionText
               : "";
@@ -2481,7 +2481,7 @@ const GetStroy = async (req, res) => {
               : "";
 
             alpabetObjectsArray.push(value);
-            console.log("After push:", alpabetObjectsArray);
+            // console.log("After push:", alpabetObjectsArray);
             if (rows.qpResponse) {
               interactionBlockObject[`Resp${result.blockSecondaryId}`] =
                 result.blockSecondaryId;
@@ -2499,7 +2499,7 @@ const GetStroy = async (req, res) => {
                 result.blockSecondaryId;
             }
           }
-          console.log("Final array:", optionsemotionObject);
+          // console.log("Final array:", optionsemotionObject);
 
           pushoption.push(optionsObject);
           // return res.status(500).json({ status: 'Failure' ,error:scoreObject });
@@ -2526,7 +2526,7 @@ const GetStroy = async (req, res) => {
             status: "yes",
           };
 
-          console.log("values", value);
+          // console.log("values", value);
           resultObject[key] = value;
         } catch (error) {
           return res
@@ -2646,6 +2646,7 @@ const ListStroy = async (req, res) => {
     });
 
     if (getGameExtensionId.gameExtensionId) {
+
       gameList = await LmsGame.findAll({
         attributes: ["gameId", "gameQuestNo", "gameExtensionId"],
         where: {
@@ -2654,7 +2655,6 @@ const ListStroy = async (req, res) => {
         },
         order: [["gameId", "ASC"]],
       });
-
       gameIn = gameList.map((al) => al.gameId);
       const getBlocks = await LmsBlocks.findAll({
         where: {
@@ -2664,7 +2664,6 @@ const ListStroy = async (req, res) => {
           blockDeleteStatus: "NO",
         },
       });
-
       if (getBlocks) {
         for (let [i, rows] of getBlocks.entries()) {
           let value = {
@@ -2789,8 +2788,8 @@ const exitTemplateOpen = async (req, res) => {
             },
           }
         );
-        console.log("setExtenstion", setExtenstion[0]);
-        console.log("clonedGame.gameId", gameup, index);
+        // console.log("setExtenstion", setExtenstion[0]);
+        // console.log("clonedGame.gameId", gameup, index);
 
         if (clonedGame) {
           const blocksToClone = await LmsBlocks.findAll({
@@ -3247,7 +3246,7 @@ const sentFeedbackMail = async (req, res) => {
 const QuestDeletion = async (req, res) => {
   try {
     const data = req?.body;
-    console.log(data);
+     console.log(data);
     const id = req?.params?.id;
 
     BlcokList = await LmsBlocks.destroy({
@@ -3268,7 +3267,39 @@ const QuestDeletion = async (req, res) => {
         qpQuestNo: data.quest,
       },
     });
+    await LmsGame.update(
+      { gameQuestNo: Sequelize.literal('gameQuestNo - 1') },
+      {
+        where: {
+          gameExtensionId: data.exid,
+          gameQuestNo: { [Op.gt]: data.quest },
+        },
+      }
+    );
 
+    await LmsBlocks.update(
+      { blockQuestNo: Sequelize.literal('blockQuestNo - 1'),
+      blockPrimarySequence: Sequelize.literal(`blockPrimarySequence - 1`),
+      blockDragSequence:Sequelize.literal('blockDragSequence - 1')},
+      {
+        where: {
+          blockGameId: data.exid,
+          blockQuestNo: { [Op.gt]: data.quest },
+        },
+      }
+    );
+
+    await lmsQuestionOptions.update(
+      { qpQuestNo: Sequelize.literal('qpQuestNo - 1'),
+      qpSequence:Sequelize.literal('qpSequence - 1')
+     },
+      {
+        where: {
+          qpGameId: data.exid,
+          qpQuestNo: { [Op.gt]: data.quest },
+        },
+      }
+    );
     return res.status(200).json({
       status: "Success",
       message: "Quest Deleted",
@@ -3630,7 +3661,7 @@ const getTotalMinofWords = async (req, res) => {
 // };
 
 const ComplitionUpdate = async (req, res) => {
-  console.log('requestCompli--',req?.body)
+  // console.log('requestCompli--',req?.body)
   try {
     const data = req?.body;
     const id = req?.params?.id;
@@ -4036,8 +4067,10 @@ const getMaxBlockQuestNo = async (req, res) => {
         blockGameId: gameId,
         blockDeleteStatus: blockDeleteStatus,
       },
+      group: ['blockQuestNo'],
     });
-    const maxBlockQuestNo = count || 0;
+    
+    const maxBlockQuestNo = count.length || 0;
     res.status(200).json({
       status: "Success",
       message: "Data Retrieved Successfully",
