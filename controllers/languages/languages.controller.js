@@ -1539,8 +1539,49 @@ const getGameLanguages = async (req, res) => {
     });
   }
 };
+const getContentRelatedLanguage = async (req, res) => {
+  try {
+    const {currGameId, langId} = req.params;
+    if (!currGameId || !langId) {
+      return res
+        .status(404)
+        .json({ status: "Failure", message: "Bad request" });
+    } 
+        
+    const gameRelatedLang = await lmsGameContentLang.findAll({
+      where: { gameId: currGameId, translationId: langId },
+      attributes: ['gamecontentId', 'gameId', 'translationId', 'textId', 'fieldName', 'content', 'audioUrls']
+    });
 
-module.exports = {
+    if (!gameRelatedLang || gameRelatedLang.length === 0) {
+      return res.status(200).json({
+        status: "Success",
+        message: "No data found",
+        data: []
+      });
+    }
+
+    const languagesContent = gameRelatedLang.map(item => ({
+      content: item.content,
+      audioUrls: item.audioUrls,
+      textId:item.textId,
+      fieldName:item.fieldName
+    }));
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Data fetched successfully",
+      data: languagesContent
+    });
+  } catch (e) {
+    return res.status(500).json({
+      status: "Failure",
+      message: "Oops! Something went wrong",
+      err: e.message,
+    });
+  }
+}
+module.exports = { 
   getLanguages,
   updatelanguages,
   getCreatedLanguages,
@@ -1551,5 +1592,6 @@ module.exports = {
   getQuestionOptions,
   getQuestionOptionsText,
   getQuestionResponse,
-  getGameLanguages
+  getGameLanguages,
+  getContentRelatedLanguage
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const {getLanguages,updatelanguages,getCreatedLanguages,updateLanguageContent,getSelectedLanguages,getBlockData,getGameStoryLine,getQuestionOptions,getQuestionOptionsText,
-    getQuestionResponse, getGameLanguages} = require('../../controllers/languages/languages.controller');
+    getQuestionResponse, getGameLanguages,getContentRelatedLanguage} = require('../../controllers/languages/languages.controller');
 const router = express.Router();
 
 
@@ -18,4 +18,8 @@ router.post('/updatelanguages',updatelanguages);
 // vignesh 10-01-24
 router.post('/updatecontent',updateLanguageContent);
 router.get('/getGameLanguages/:id',getGameLanguages); //used for Demo game play
+//Afrith-modified-starts-20/Mar/24
+// router.get('/getContentRelatedLanguage/:id', getContentRelatedLanguage); //used to get selected langId from Demo game play(Character Selection)
+router.get('/getContentRelatedLanguage/:currGameId/:langId', getContentRelatedLanguage); //used to get selected langId from Demo game play(Character Selection)
+
 module.exports = router;
