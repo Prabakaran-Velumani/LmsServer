@@ -1563,7 +1563,9 @@ const getContentRelatedLanguage = async (req, res) => {
 
     const languagesContent = gameRelatedLang.map(item => ({
       content: item.content,
-      audioUrls: item.audioUrls
+      audioUrls: item.audioUrls,
+      textId:item.textId,
+      fieldName:item.fieldName
     }));
 
     return res.status(200).json({
@@ -1579,7 +1581,7 @@ const getContentRelatedLanguage = async (req, res) => {
     });
   }
 }
-module.exports = {
+module.exports = { 
   getLanguages,
   updatelanguages,
   getCreatedLanguages,
