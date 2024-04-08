@@ -804,12 +804,9 @@ const createLmsGameContentLang = async (
 ///////////////////////////////////////Translate/////////////////////////////////////////////////////
 
 async function translateToAnotherLanguage(lng, content) {
-  //const OPENAI_API_KEY = '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'; // Replace with your actual OpenAI API key
-  const OPENAI_API_KEY = "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";
-
-  try {
+    try {
     const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY,
+       apiKey: process.env.OPENAI_API_KEY,
     });
     console.log(
       "//////////////////////////////////////Translate/////////////////////////////////////////////////////"
