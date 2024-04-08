@@ -4027,6 +4027,7 @@ const getGamePreviewCollection = async (req, res) => {
     );
 
     let gameReflectionQuest = [];
+    console.log('GameRecords',GameRecords)
     if (GameRecords) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
         where: {
@@ -4035,6 +4036,7 @@ const getGamePreviewCollection = async (req, res) => {
           refActiveStatus: "Yes",
         },
       });
+      console.log('gameReflectionQuest',gameReflectionQuest);
     }
     /**returns Player characters */
     const directoryPath = path.join(process.cwd(), "uploads", "player");
