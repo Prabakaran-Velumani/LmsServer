@@ -3869,6 +3869,19 @@ const getGameCollections = async (req, res) => {
       mail: reviewerGame?.lmsgamereviewer?.emailId,
       role: "Reviewer",
     };
+
+    const gameQuest = await reviewerGame?.lmsgame?.gameQuest;    
+    const gameQuestBadgesUrls = await Promise.all(
+      gameQuest?.map(async (item) => {
+        const assets = await LmsGameAssets.findOne({
+          attribute: ["gasAssetImage"],
+          where: { gasId: item.gameBadge },
+        });
+        const key = "Quest_" + item.gameQuestNo;
+        return { [key]: await assets?.gasAssetImage };
+      })
+    );
+
     let gameReflectionQuest = [];
     if (reviewerGame) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
@@ -3893,10 +3906,11 @@ const getGameCollections = async (req, res) => {
         playerCharectorsUrl: filesWithPath ?? "",
         bgMusicUrl: bgMusic?.gasAssetImage ?? "",
         npcUrl: npcUrl?.gasAssetImage ?? "",
+        badges: gameQuestBadgesUrls,
       },
     });
   } catch (error) {
-    return res.status(400).json({ error: error });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -4056,7 +4070,7 @@ const getGamePreviewCollection = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(400).json({ error: error });
+    return res.status(400).json({ error: error.message });
   }
 };
 const getMaxBlockQuestNo = async (req, res) => {

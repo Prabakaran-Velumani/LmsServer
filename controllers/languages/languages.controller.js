@@ -1199,112 +1199,86 @@ const convertTextToAudio = async (
     }
  * }
  */
-  try {
-    const fileArray = [];
-    let err = "";
-    // for (let voiceId of voiceIds) {
-    if (voiceIds) {
+    const fileArray = []; // Define fileArray to store information about the generated audio files
+    try {
+      if (!voiceIds || !data || !langCode || !gameId) {
+        throw new Error('Missing required arguments: voiceIds, data, langCode, gameId');
+      }
+      console.log('gameId', gameId);
+  
       const promises = Object.entries(voiceIds).map(async ([key, voiceId]) => {
-        if (voiceId) {
-          const send = {
-            text: data.text,
-            model_id: data?.model_id ?? "eleven_multilingual_v2",
-            voice_settings: data?.voice_settings ?? {
-              similarity_boost: 0.3,
-              stability: 0.6,
-              style: 0,
-              use_speaker_boost: true,
-            },
+        if (!voiceId) {
+          return {
+            status: "Failure",
+            data: [],
+            error: 'Voice Id missing',
           };
-
-          let options = {
-            method: "POST",
-            // mode: 'cors',
-            headers: {
-              "xi-api-key": process.env.ELEVENLAPS_KEY,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(send),
-          };
-
-          //uncomment this when API works
-          // const response = await fetch(
-          //   `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-          //   options
-          // );
-
-          // if (response.contentType?.startsWith('audio/')) {
-
-          // const audioData = await response.blob();
-          /**Comment next two lines*/
-          const randomPath = Math.floor(Math.random() * 3);
-          const testFiles = ["note.mp3", "dialogue.mp3", "interaction.mp3"];
-          const audioFilePath = path.join(
-            __dirname,
-            "..",
-            "..",
-            "uploads",
-            "test",
-            testFiles[randomPath]
-          );
-          // Read the audio file
-          if (!fs.existsSync(audioFilePath)) {
-            // console.error("Audio file not found:", audioFilePath);
-            return;
-          }
-          const audioData = await fsp.readFile(audioFilePath);
-          // fs.readFile(audioFilePath, (err, audioData) => {
-
-          const timestamp = Date.now();
-          const filename = `${langCode}_${voiceId}_${timestamp}.mp3`; // Example filename: 1646610500000_6digit number between 100000 to 999999.mp3
-
-          // Define the directory where you want to save the audio files
-          // const directory = path("uploads", "tta", gameId, langCode); // Adjust the directory path as needed
-          const directory = path.join(
-            __dirname,
-            "..",
-            "..",
-            "uploads",
-            "tta",
-            gameId,
-            langCode
-          );
-
-          // Ensure the directory exists, create it if it doesn't
-          await fsp.mkdir(directory, { recursive: true });
-
-          // Write the audio data to the file
-          const filePath = path.join(directory, filename);
-          await fsp.writeFile(filePath, audioData);
-          console.log(voiceId, " ==> ", {
-            filename: filename,
-            path: filePath,
-            error: "",
-          });
-          fileArray.push({ filename: filename, path: filePath, error: "" });
-
-          // console.log("fileArray", fileArray);
-          /**Uncomment when api works */
-          //   }
-          //   else{
-          //      const errorResponse = await response.json();
-          //      err = errorResponse?.detail;
-          //     console.log ("$$$$ Api Error Message  -- ",errorResponse?.detail);
-          // }
         }
-      });
+        
+        const send = {
+          text: data.text,
+          model_id: data?.model_id ?? "eleven_multilingual_v2",
+          voice_settings: data?.voice_settings ?? {
+            similarity_boost: 0.3,
+            stability: 0.6,
+            style: 0,
+            use_speaker_boost: true,
+          },
+        };
+  
+        const options = {
+          method: "POST",
+          headers: {
+            "xi-api-key": process.env.ELEVENLAPS_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(send),
+        };
+  
+        const response = await fetch(
+          `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+          options);
+          console.log('response.ok', response.ok);
+  
+          if (!response.ok) {
+            throw new Error(`Failed to fetch audio for voiceId ${voiceId}`);
+        }
 
-      // console.log('fileArray', fileArray)
+        const contentType = response.headers.get('content-type');
+        console.log('contentType', contentType)
+        if (!contentType || !contentType.startsWith('audio/')) {
+          console.log('!contentType || !contentType.startsWith(audio/')
+          
+            throw new Error(`Invalid response or missing audio content for voiceId ${voiceId}`);
+        }
+  
+        const timestamp = Date.now();
+        const filename = `${langCode}_${voiceId}_${timestamp}.mp3`;
+        const directory = path.join(__dirname, "../../uploads", "tta", gameId, langCode);
+        const filePath =  path.join("uploads","tta", gameId, langCode, filename);
+        const audioUrl =  `/uploads/tta/${gameId}/${langCode}/${filename}`;
+  
+        // Ensure the directory exists, create it if it doesn't
+        await fs.promises.mkdir(directory, { recursive: true });
+        // Convert the response to an ArrayBuffer
+        const buffer = await response.arrayBuffer();
+
+        // Write the buffer to a file
+        await fs.promises.writeFile(filePath, Buffer.from(buffer));
+        fileArray.push({ filename: filename, path: audioUrl, voiceId: voiceId, error: "" });
+      });
+  
       await Promise.all(promises);
+  
+      return {
+        status: fileArray.length > 0 ? "Success" : "Failure",
+        data: fileArray,
+        error: '',
+      };
+    } catch (error) {
+      console.error('Error:', error.message);
+      return { status: "Failure", error: error.message};
     }
-    return {
-      status: fileArray.length > 0 ? "Success" : "Failure",
-      data: fileArray,
-      error: err,
-    };
-  } catch (error) {
-    return { status: "Failure", error: error };
-  }
 };
 
 const getSpeakerVoiceId = async (lmsgamecontentlang, selectedlangOptions) => {
@@ -1465,17 +1439,18 @@ const getConvertedTextToAudioUrls = async (
   let jsonObjectArray = [];
 
   console.log("audioUrlArray", audioUrlArray);
-  if (audioUrlArray.status == "Success") {
+    if (audioUrlArray.status == "Success") {
     const dataArray = audioUrlArray.data;
     for (let data of dataArray) {
-      let voiceId = data.filename.split("_")[1];
+      // let voiceId = data.filename.split("_")[1];
       /** filename: 'ta_D38z5RcWu1voky8WS1ja_1708683731564.mp3'
        *             langCode_VoiceId_timestamp.format
-      0        1        2
+                        0        1        2
       */
-      jsonObjectArray.push({ voiceId: voiceId, audioUrl: data.path });
+                        
+      jsonObjectArray.push({ voiceId: data.voiceId, audioUrl: data.path });
     }
-    return JSON.stringify(jsonObjectArray);
+    return JSON.stringify(jsonObjectArray); // data stored in Json format in DB. Need to stringify before use it
   }
   return "";
 };
