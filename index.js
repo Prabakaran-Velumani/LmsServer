@@ -30,6 +30,7 @@ const gameReviewRoutes = require('./routes/gamereview/gamereview.routes')
 const scormRoute = require('./routes/scorm/scorm.routes')
 const translateRoutes = require('./routes/translate/translate.routes')
 const languageRoutes = require('./routes/languages/languages.routes')
+const previewlogsRoutes = require('./routes/previewlogs/previewlogs.routes')
 
 const cron =require("node-cron");
 require("dotenv").config();
@@ -66,6 +67,7 @@ app.use('/translate',translateRoutes);
 app.use('/languages',languageRoutes);
 app.use('/gamereview',gameReviewRoutes);
 app.use('/scorm',scormRoute);
+app.use('/preview',previewlogsRoutes);
 
 app.listen(process.env.PORT || 5555,'192.168.1.30', (err) => {
   if (err) throw err;
