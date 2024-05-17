@@ -1,5 +1,5 @@
 const express = require('express');
-const {addGameReview, addGameReviewers,getGameBlockReview, updateGameBlockReview,deleteGameBlockReview, getGameBlockReviewList, getGameAllReviews,getGameReviewById, getGameReviewList} = require('../../controllers/gamereview/gamereview.controller');
+const {addGameReview, addGameReviewers,getGameBlockReview, updateGameBlockReview,deleteGameBlockReview, getGameBlockReviewList, getGameAllReviews,getGameReviewById, getGameReviewList, updateReadStatus} = require('../../controllers/gamereview/gamereview.controller');
 // const { uploadSettings, fileFilters, storageLocations } = require('../../config/storageConfig');
 const router = express.Router();
 
@@ -11,10 +11,12 @@ router.post('/addblockreview',addGameReview); //review submitted for each blocks
 router.post('/addreviewers',addGameReviewers);
 router.put('/blockreview',updateGameBlockReview);
 router.delete('/blockreview/:id',deleteGameBlockReview);//doing soft delete only
-
+router.put('/readStatus',updateReadStatus);//update the one colum  readStatus api..kishore....8/05/2024
 
 //Creator's Route
 router.post('/getblockreviewlist',getGameBlockReviewList);// get All reviews for a  gameId and current Block/Screen/Field
 router.get('/getblockreviewlist/:gameId',getGameReviewList);// get All reviews for a  gameId
+
+
 
 module.exports = router;

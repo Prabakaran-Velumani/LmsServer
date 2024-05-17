@@ -42,6 +42,11 @@ const LmsGameReviews = sequelize.define(
         type: DataTypes.STRING(250),
         allowNull: true,
       },
+      readStatus: {
+        type: DataTypes.TINYINT,
+        allowNull: false,
+        defaultValue: 0, // 0 for unreaded, 1 to marked as readed
+    },
       reviewIpAddress: {
         type: DataTypes.STRING(16),
         allowNull: true,

@@ -44,7 +44,7 @@ const lmsquestionsoption= sequelize.define('lmsquestionsoption', {
     allowNull: true,
   },
   qpOptionText: {
-    type: DataTypes.STRING(250),
+    type: DataTypes.TEXT,
     allowNull: true,
   },
   qpResponse: {
@@ -94,13 +94,13 @@ const lmsquestionsoption= sequelize.define('lmsquestionsoption', {
   qpVoice: {
     type: DataTypes.STRING(100),
     allowNull: true,
-    // references: {
-    //   model: 'VoiceTypes', // Assuming you have a VoiceTypes table
-    //   key: 'voiceId'
-    // }
   },
   qpNextOption: {
     type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  qbAudioUrl :{
+    type: DataTypes.STRING(250),
     allowNull: true,
   },
   qpCreatedDatetime: {

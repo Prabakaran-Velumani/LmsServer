@@ -141,7 +141,11 @@ const getGame = async (req, res) => {
         let catNames = null;
 
         if (game.gameSkills) {
-          const skillArray = game.gameSkills.split(",").map(Number);
+          // const skillArray = game.gameSkills.split(",").map(Number);
+          const skillArray = game.gameSkills.split(",").map((item) => {
+            const number = parseInt(item, 10);
+            return isNaN(number) ? null : number;
+          }).filter(item => item !== null); // Filter out any null values
 
           const getSkills = await Skill.findAll({
             attributes: [["crSkillName", "skillName"]],
@@ -295,7 +299,7 @@ const getGameTemplate = async (req, res) => {
         `gameDuplicated`,
         `gameCourseType`,
         `gameLaunchedWithinPlatform`,
-        `gameDownloadedAsScorm`,
+        // `gameDownloadedAsScorm`,
         `gameScormVersion`,
         `gameIsShowInteractionFeedBack`,
         `gameShuffle`,
@@ -467,7 +471,7 @@ const updateGame = async (req, res) => {
 
         // console.log(`Value ${data.gameLastTab} processed for gameLastTabArray`);
       } else {
-       // console.log("gameLastTabArray not found or is null");
+        // console.log("gameLastTabArray not found or is null");
       }
       // Other logic...
 
@@ -2355,7 +2359,11 @@ const GetStroy = async (req, res) => {
         blockDeleteStatus: "NO",
         blockQuestNo: questNos,
       },
-      order: [["blockPrimarySequence", "ASC"]],
+      // order: [["blockPrimarySequence", "ASC"]],
+      order: [
+        [Sequelize.literal('CAST(SUBSTRING_INDEX(`blockPrimarySequence`, \'.\', 1) AS UNSIGNED)'), 'ASC'],
+        [Sequelize.literal('CAST(SUBSTRING_INDEX(`blockPrimarySequence`, \'.\', -1) AS UNSIGNED)'), 'ASC']
+    ],
     });
 
     let resultObject = {};
@@ -2646,7 +2654,6 @@ const ListStroy = async (req, res) => {
     });
 
     if (getGameExtensionId.gameExtensionId) {
-
       gameList = await LmsGame.findAll({
         attributes: ["gameId", "gameQuestNo", "gameExtensionId"],
         where: {
@@ -2673,6 +2680,7 @@ const ListStroy = async (req, res) => {
             input: rows.blockSecondaryId,
             gameId: rows.blockGameId,
             questNo: rows.blockQuestNo,
+            blockId: rows.blockId,
             // Add other properties as needed
           };
           BlockObject[i] = value;
@@ -3180,133 +3188,7 @@ const sentFeedbackMail = async (req, res) => {
     return res.status(500).json({ status: "Failure", error: error.message });
   }
 };
-// const QuestDeletion = async (req, res) => {
-//   try {
-//     const data = req?.body;
-//     console.log(data);
-//     const id = req?.params?.id;
-
-//     BlcokList = await LmsBlocks.findAll({
-//       attributes: ["blockId"],
-//       where: {
-//         blockGameId: data.exid,
-//         blockQuestNo: data.quest,
-//       },
-//       order: [["blockId", "ASC"]],
-//     });
-
-//     blockIn = BlcokList.map((al) => al.blockId);
-
-//     const DeleteGame = await LmsGame.update(
-//       {
-//         gameDeleteStatus: "YES",
-//       },
-//       {
-//         where: {
-//           gameId: id,
-//         },
-//       }
-//     );
-
-//     const DeleteBlock = await LmsBlocks.update(
-//       {
-//         blockDeleteStatus: "YES",
-//       },
-//       {
-//         where: {
-//           blockGameId: data.exid,
-//           blockQuestNo: data.quest,
-//         },
-//       }
-//     );
-
-//     const questiondat = await lmsQuestionOptions.update(
-//       {
-//         qpDeleteStatus: "YES",
-//       },
-//       {
-//         where: {
-//           qpOptionId: {
-//             [Op.in]: blockIn,
-//           },
-//         },
-//       }
-//     );
-
-//     return res.status(200).json({
-//       status: "Success",
-//       message: "Quest Deleted",
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ status: "Failure", error: error.message });
-//   }
-// };
-
-//QuestDeletion()  updated by brindha 1-3-2024
 const QuestDeletion = async (req, res) => {
-  try {
-    const data = req?.body;
-     console.log(data);
-    const id = req?.params?.id;
-
-    BlcokList = await LmsBlocks.destroy({
-      where: {
-        blockGameId: data.exid,
-        blockQuestNo: data.quest,
-      },
-    });
-
-    const DeleteGame = await LmsGame.destroy({
-      where: {
-        gameId: id,
-      },
-    });
-    const questiondat = await lmsQuestionOptions.destroy({
-      where: {
-        qpGameId: data.exid,
-        qpQuestNo: data.quest,
-      },
-    });
-    await LmsGame.update(
-      { gameQuestNo: Sequelize.literal('gameQuestNo - 1') },
-      {
-        where: {
-          gameExtensionId: data.exid,
-          gameQuestNo: { [Op.gt]: data.quest },
-        },
-      }
-    );
-
-    await LmsBlocks.update(
-      { blockQuestNo: Sequelize.literal('blockQuestNo - 1'),
-      blockPrimarySequence: Sequelize.literal(`blockPrimarySequence - 1`),
-      blockDragSequence:Sequelize.literal('blockDragSequence - 1')},
-      {
-        where: {
-          blockGameId: data.exid,
-          blockQuestNo: { [Op.gt]: data.quest },
-        },
-      }
-    );
-
-    await lmsQuestionOptions.update(
-      { qpQuestNo: Sequelize.literal('qpQuestNo - 1'),
-      qpSequence:Sequelize.literal('qpSequence - 1')
-     },
-      {
-        where: {
-          qpGameId: data.exid,
-          qpQuestNo: { [Op.gt]: data.quest },
-        },
-      }
-    );
-    return res.status(200).json({
-      status: "Success",
-      message: "Quest Deleted",
-    });
-  } catch (error) {
-    return res.status(500).json({ status: "Failure", error: error.message });
-  }
 };
 const getCompletionScreen = async (req, res) => {
   try {
@@ -3391,137 +3273,6 @@ const getCompletionScreen = async (req, res) => {
   }
 };
 const getStoryValidtion = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res
-        .status(400)
-        .json({ status: "Failure", message: "Bad Request" });
-    }
-
-    const gameData = await LmsGame.findOne({
-      where: { gameId: id },
-      include: [
-        {
-          model: LmsBlocks,
-          attributes: [
-            "blockGameId",
-            "blockId",
-            "blockText",
-            "blockDragSequence",
-            "blockCharacterposesId",
-            "blockQuestNo",
-          ],
-          where: {
-            blockDeleteStatus: "NO",
-          },
-        },
-        {
-          model: lmsQuestionOptions,
-          attributes: [
-            "qpGameId",
-            "qpQuestionId",
-            "qpOptionId",
-            "qpOptionText",
-            "qpTag",
-            "qpScore",
-            "qpEmotion",
-            "qpQuestNo",
-            "qpSequence",
-          ],
-          where: {
-            qpDeleteStatus: "NO",
-          },
-        },
-      ],
-    });
-
-    if (!gameData) {
-      return res.status(404).json({ error: "Record not found" });
-    }
-
-    // Check if lmsblocks array exists and is not empty
-    if (gameData.lmsblocks && gameData.lmsblocks.length > 0) {
-      const blockFields = ["blockText"];
-
-      // Check if any field within lmsblocks is empty
-      for (const field of blockFields) {
-        if (!gameData.lmsblocks[0][field]) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Block ${field}`,
-          });
-        }
-      }
-    } else {
-      return res.status(400).json({
-        status: "Failure",
-        message: "Please Fill the Empty Fields",
-      });
-    }
-
-    const uniqueQuestionIds = [
-      ...new Set(
-        gameData.lmsquestionsoptions.map((option) => option.qpQuestionId)
-      ),
-    ];
-
-    for (const questionIdToCheck of uniqueQuestionIds) {
-      const optionsForQuestionId = gameData.lmsquestionsoptions.filter(
-        (option) => option.qpQuestionId === questionIdToCheck
-      );
-
-      for (const option of optionsForQuestionId) {
-        if (!option.qpOptionText) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Plese Fill the Incomplete Fields op of Quest  ${option.qpSequence}`,
-          });
-        }
-        if (!option.qpEmotion) {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Plese Fill the Incomplete Fields inpu of Quest ${option.qpOptionId}`,
-          });
-        }
-      }
-
-      const hasTrueTag = optionsForQuestionId.some(
-        (option) => option.qpTag === "true"
-      );
-
-      if (!hasTrueTag) {
-        return res.status(400).json({
-          status: "Failure",
-          message: `At least one option must be selected on this sequence of Quest ${optionsForQuestionId[0].qpQuestNo}`,
-        });
-      }
-
-      for (const option of optionsForQuestionId) {
-        if (option.qpTag === "true" && option.qpScore === "") {
-          return res.status(400).json({
-            status: "Failure",
-            message: `Score is required for Selected Option of Quest ${option.qpQuestNo}`,
-          });
-        }
-      }
-    }
-
-    res.status(200).json({
-      status: "Success",
-      message: "Data Retrieved Successfully",
-      data: gameData,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message:
-        "An error occurred while processing the request. Check the server logs for more details.",
-      err: error,
-    });
-  }
 };
 const getTotalMinofWords = async (req, res) => {
   try {
@@ -3691,9 +3442,6 @@ const ComplitionUpdate = async (req, res) => {
             message: `Failed to update ${key} with value ${value}.`,
             err: req?.body,
           });
-          
-
-          
         }
       }
     }
@@ -3870,7 +3618,7 @@ const getGameCollections = async (req, res) => {
       role: "Reviewer",
     };
 
-    const gameQuest = await reviewerGame?.lmsgame?.gameQuest;    
+    const gameQuest = await reviewerGame?.lmsgame?.gameQuest;
     const gameQuestBadgesUrls = await Promise.all(
       gameQuest?.map(async (item) => {
         const assets = await LmsGameAssets.findOne({
@@ -3987,7 +3735,6 @@ const getGamePreviewCollection = async (req, res) => {
             exclude: ["blockIpAddress", "blockUserAgent", "blockDeviceType"],
           },
           where: { blockDeleteStatus: "No", blockActiveStatus: "Active" },
-          
         },
         {
           model: lmsQuestionOptions,
@@ -3995,9 +3742,9 @@ const getGamePreviewCollection = async (req, res) => {
           attributes: {
             exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
           },
-          where: { 
+          where: {
             qpDeleteStatus: { [Op.eq]: "No" },
-            qpActiveStatus: "Yes"
+            qpActiveStatus: "Yes",
           },
         },
         {
@@ -4005,12 +3752,97 @@ const getGamePreviewCollection = async (req, res) => {
           as: "gameQuest",
         },
       ],
-      // logging: true
+      logging: true,
     });
+    let completionScreenObject = {};
 
-    if (!GameRecords) {
-      return res.status(404).json({ error: "No data found" });
+    const getCompletionscreens = await LmsGame.findAndCountAll({
+      where: {
+        gameExtensionId: gamepkId,
+        gameDeleteStatus: "NO",
+      },
+      order: ["gameId"],
+    });
+    if (getCompletionscreens) {
+      for (let [index, result] of getCompletionscreens.rows.entries()) {
+        const getTotalscore = await lmsQuestionOptions.findAll({
+          attributes: [
+            [
+              Sequelize.fn(
+                "SUM",
+                Sequelize.literal("lmsquestionsoption.qpScore")
+              ),
+              "maxScore",
+            ],
+          ],
+          where: {
+            qpGameId: gamepkId,
+            qpQuestNo: result.gameQuestNo,
+            qpDeleteStatus: "No",
+            qpTag: "true",
+          },
+          group: ["qpQuestNo"], // Add GROUP BY clause
+        });
+
+        let TotalScore = getTotalscore; // Corrected access to alias name
+
+        // Loop through the getTotalscore result and extract maxScore values
+
+        let value = {
+          gameId: result.gameId,
+          gameQuestNo: result.gameQuestNo,
+          gameTotalScore: TotalScore ?? null,
+          gameIsSetMinPassScore: result.gameIsSetMinPassScore ?? "false",
+          gameMinScore: result.gameMinScore,
+          gameIsSetDistinctionScore:
+            result.gameIsSetDistinctionScore ?? "false",
+          gameDistinctionScore: result.gameDistinctionScore,
+          gameIsSetSkillWiseScore: result.gameIsSetSkillWiseScore ?? "false",
+          gameIsSetBadge: result.gameIsSetBadge,
+          gameBadge: result.gameBadge,
+          gameBadgeName: result.gameBadgeName,
+          gameIsSetCriteriaForBadge:
+            result.gameIsSetCriteriaForBadge ?? "false",
+          gameAwardBadgeScore: result.gameAwardBadgeScore,
+          gameScreenTitle: result.gameScreenTitle
+            ? result.gameScreenTitle
+            : "Quest Complete",
+          gameCompletedCongratsMessage: result.gameCompletedCongratsMessage
+            ? result.gameCompletedCongratsMessage
+            : "Congratulations! you have Completed....",
+          gameIsSetCongratsScoreWiseMessage:
+            result.gameIsSetCongratsScoreWiseMessage ?? "false",
+          gameMinimumScoreCongratsMessage:
+            result.gameMinimumScoreCongratsMessage,
+          gameaboveMinimumScoreCongratsMessage:
+            result.gameaboveMinimumScoreCongratsMessage ?? "",
+          gameLessthanDistinctionScoreCongratsMessage:
+            result.gameLessthanDistinctionScoreCongratsMessage,
+          gameAboveDistinctionScoreCongratsMessage:
+            result.gameAboveDistinctionScoreCongratsMessage ?? "",
+        };
+
+        completionScreenObject[index] = value;
+      }
     }
+    console.log("GameRecords", GameRecords);
+    if (!GameRecords) {
+    const  BackgroudImg = await LmsGame.findOne({
+        where: {
+          gameId: gamepkId,
+        },
+      });
+
+      if (!BackgroudImg) {
+        /** returns game Non playing characters url */
+        return res.status(200).json({
+          result: BackgroudImg,
+        });
+      }
+
+      // return res.status(404).json({ error: "No data found" ,data:GameRecords});
+    }
+
     /** returns game background music */
     const gameIntro = await GameRecords?.gameIntroMusic;
     let bgMusic = null;
@@ -4041,7 +3873,7 @@ const getGamePreviewCollection = async (req, res) => {
     );
 
     let gameReflectionQuest = [];
-    console.log('GameRecords',GameRecords)
+    console.log("GameRecords", GameRecords);
     if (GameRecords) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
         where: {
@@ -4050,7 +3882,7 @@ const getGamePreviewCollection = async (req, res) => {
           refActiveStatus: "Yes",
         },
       });
-      console.log('gameReflectionQuest',gameReflectionQuest);
+      console.log("gameReflectionQuest", gameReflectionQuest);
     }
     /**returns Player characters */
     const directoryPath = path.join(process.cwd(), "uploads", "player");
@@ -4062,6 +3894,7 @@ const getGamePreviewCollection = async (req, res) => {
     return res.status(200).json({
       result: GameRecords,
       resultReflection: gameReflectionQuest,
+      data: completionScreenObject,
       assets: {
         playerCharectorsUrl: filesWithPath ?? "",
         bgMusicUrl: bgMusic?.gasAssetImage ?? "",
@@ -4083,9 +3916,9 @@ const getMaxBlockQuestNo = async (req, res) => {
         blockGameId: gameId,
         blockDeleteStatus: blockDeleteStatus,
       },
-      group: ['blockQuestNo'],
+      group: ["blockQuestNo"],
     });
-    
+
     const maxBlockQuestNo = count.length || 0;
     res.status(200).json({
       status: "Success",

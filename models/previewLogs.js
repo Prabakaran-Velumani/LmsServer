@@ -46,25 +46,45 @@ const PreviewLogs = sequelize.define('PreviewLogs', {
            allowNull: true
          },
          audioVolumeValue: {
-           type: DataTypes.DECIMAL(2, 1),
-           defaultValue: 0.5
-         },
-         lastModifiedBlockSeq: {
-           type: DataTypes.INTEGER
-         },
-         lastBlockModifiedDate: {
-           type: DataTypes.DATE,
+           type: DataTypes.JSON,
+           defaultValue: {bgVolume : 0.5, voVolume: 0.5}
+          },
+          lastModifiedBlockSeq: {
+            type: DataTypes.STRING(10),
+            allowNull:true
+          },
+          lastBlockModifiedDate: {
+            type: DataTypes.DATE,
+            allowNull: true
+          },
+          playerInputs:
+          {
+           type: DataTypes.JSON,
            allowNull: true
-         },
+          },
+          ipAddress: {
+          type: DataTypes.STRING(16),
+          allowNull: true,
+        },
+        userAgent: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+        },
+        deviceType: {
+          type: DataTypes.STRING(16),
+          allowNull: true,
+        },
          createdAt: {
            allowNull: false,
            type: DataTypes.DATE
          },
-        updatedAt: {
-          allowNull: true,
+         updatedAt: {
           type: DataTypes.DATE,
-          defaultValue: sequelize.fn('NOW'),// Use Sequelize function to get current timestamp
+          allowNull: true,
+          defaultValue: null,
+          onUpdate: sequelize.literal('CURRENT_TIMESTAMP'),
         },
+      
 }, {
   tableName: 'previews_logs',
   timestamps: true

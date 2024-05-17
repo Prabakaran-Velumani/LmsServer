@@ -68,7 +68,6 @@ app.use('/languages',languageRoutes);
 app.use('/gamereview',gameReviewRoutes);
 app.use('/scorm',scormRoute);
 app.use('/preview',previewlogsRoutes);
-
 app.listen(process.env.PORT || 5555,'192.168.1.30', (err) => {
   if (err) throw err;
   else console.log(`port ${process.env.PORT || 5555} is Run`);

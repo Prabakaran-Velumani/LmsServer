@@ -18,6 +18,10 @@ const ReflectionQuestion = sequelize.define('lmsreflectionquestion', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  translationId: {                //Afrith-modified-04/May/24 - added translationId
+    type: DataTypes.INTEGER(100),
+    allowNull: true,
+  },
   refKey:{
     type: DataTypes.STRING(100),
     allowNull: true,

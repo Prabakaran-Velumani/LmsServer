@@ -504,6 +504,7 @@ const getGameBlockReview = async (req, res) => {
         tabId: { [Op.eq]: reqData.tabId },
         tabAttribute: { [Op.like]: `%${reqData.tabAttribute}%` },
         tabAttributeValue: { [Op.like]: `%${reqData.tabAttributeValue}%` },
+        readStatus:{ [Op.eq]: reqData.readStatus }
       },
     });
     if (blockReview) {
@@ -627,6 +628,7 @@ const getGameBlockReviewList = async (req, res) => {
         tabId: { [Op.eq]: reqData.tabId },
         tabAttribute: { [Op.like]: `%${reqData.tabAttribute}%` },
         tabAttributeValue: { [Op.like]: `%${reqData.tabAttributeValue}%` },
+        readStatus: { [Op.eq]: reqData.readStatus },
       },
     });
     if (gameReviewlist) {
@@ -664,6 +666,7 @@ const getGameReviewList = async (req, res) => {
               "reviewDeviceType",
               "deletedAt",
               "reviewUserAgent",
+              
             ],
           },
           // include: [
@@ -701,6 +704,7 @@ const getGameReviewList = async (req, res) => {
               "creatorId",
               "emailId",
               "activeStatus",
+              // "readStatus",
             ],
             include: [
               {
@@ -781,6 +785,40 @@ const sendReviewInvitationMails = async (result, url) => {
   }
 };
 
+
+const updateReadStatus = async (req, res) => {
+  try {
+    // Extract data from request body
+    const { gameReviewerId, reviewId ,tabAttribute} = req.body;
+    console.log("reviewId",gameReviewerId);
+        console.log("reviewId",reviewId);
+        console.log("reviewId",tabAttribute);
+      
+    // Perform the update operation
+    const updateResult = await GameReviews.update(
+      { readStatus: 1 }, // Update readStatus to 1 (read)
+      {
+        where: {
+          reviewId: reviewId,
+          gameReviewerId: gameReviewerId,
+          tabAttribute:tabAttribute
+        }
+      }
+    );
+
+    // Check if update was successful
+    if (updateResult[0] === 1) { // updateResult is an array with number of affected rows
+      return res.status(200).json({ status: "Success", message: "Read status updated successfully" });
+    } else {
+      return res.status(400).json({ status: "Failure", message: "Failed to update read status" });
+    }
+  } catch (error) {
+    console.error("Error updating read status:", error);
+    return res.status(500).json({ status: "Failure", message: "Internal Server Error" });
+  }
+};
+
+
 module.exports = {
   addGameReview,
   addGameReviewers,
@@ -791,4 +829,5 @@ module.exports = {
   getGameAllReviews,
   getGameReviewById,
   getGameReviewList,
+  updateReadStatus,//... readStatus code update ..kishore
 };
