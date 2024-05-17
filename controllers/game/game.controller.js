@@ -3825,22 +3825,9 @@ const getGamePreviewCollection = async (req, res) => {
         completionScreenObject[index] = value;
       }
     }
-    console.log("GameRecords", GameRecords);
+    
     if (!GameRecords) {
-    const  BackgroudImg = await LmsGame.findOne({
-        where: {
-          gameId: gamepkId,
-        },
-      });
-
-      if (!BackgroudImg) {
-        /** returns game Non playing characters url */
-        return res.status(200).json({
-          result: BackgroudImg,
-        });
-      }
-
-      // return res.status(404).json({ error: "No data found" ,data:GameRecords});
+    return res.status(404).json({ error: "No data found" ,data:GameRecords});
     }
 
     /** returns game background music */
@@ -3873,7 +3860,7 @@ const getGamePreviewCollection = async (req, res) => {
     );
 
     let gameReflectionQuest = [];
-    console.log("GameRecords", GameRecords);
+
     if (GameRecords) {
       gameReflectionQuest = await ReflectionQuestion.findAll({
         where: {
@@ -3882,7 +3869,6 @@ const getGamePreviewCollection = async (req, res) => {
           refActiveStatus: "Yes",
         },
       });
-      console.log("gameReflectionQuest", gameReflectionQuest);
     }
     /**returns Player characters */
     const directoryPath = path.join(process.cwd(), "uploads", "player");
