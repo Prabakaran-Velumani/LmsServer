@@ -75,7 +75,7 @@ const LmsGameReviewers = sequelize.define(
     }
     );
     
-    LmsGameReviewers.belongsTo(LmsCreator, { foreignKey: "creatorId", targetKey: "ctId", as: "ReviewingCreator"});
-    LmsGameReviewers.hasMany(LmsGameReviews, { foreignKey: "gameReviewerId", targetKey: "gameReviewerId", as:"reviews"});
+    LmsGameReviewers.belongsTo(LmsCreator, { foreignKey: "creatorId", targetKey: "ctId", as: "ReviewingCreator", onUpdate: 'CASCADE', onDelete: 'CASCADE'});
+    LmsGameReviewers.hasMany(LmsGameReviews, { foreignKey: "gameReviewerId", targetKey: "gameReviewerId", as:"reviews",onUpdate: 'CASCADE', onDelete: 'CASCADE' });
     
 module.exports = LmsGameReviewers;

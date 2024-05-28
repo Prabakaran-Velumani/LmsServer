@@ -39,7 +39,7 @@ const LmsReviewersGame = sequelize.define(
         primaryKey: false, // Exclude the default 'id' field
     }
     );
-    LmsReviewersGame.belongsTo(LmsGameReviewers, { foreignKey: "reviewerId", targetKey: "gameReviewerId"});
-    LmsReviewersGame.belongsTo(LmsGame, { foreignKey: "gameId" });
+    LmsReviewersGame.belongsTo(LmsGameReviewers, { foreignKey: "reviewerId", targetKey: "gameReviewerId", onUpdate: 'CASCADE', onDelete: 'CASCADE'});
+    LmsReviewersGame.belongsTo(LmsGame, { foreignKey: "gameId" , onUpdate: 'CASCADE', onDelete: 'CASCADE'});
 
 module.exports = LmsReviewersGame;

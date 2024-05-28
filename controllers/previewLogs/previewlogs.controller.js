@@ -6,22 +6,25 @@ const LmsBlocks = require("../../models/blocks");
 const updatePreviewLogs = async (req, res) => {
   try {
     // Parse the userDataString back into an object
+
     if (!req.body?.previewLogId || req.body?.previewLogId == null) {
       let logData = null;
-
-      // Check if the type is 'creator' or 'reviewer'
-      if ((req.body.type === 'creator' || req.body.type === 'reviewer') && req.body.playerId && req.body.gameId){
+      // console.log("req.body", req.body)
+      // Check if the playerType is 'creator' or 'reviewer'
+    
+      if ((req.body.playerType === 'creator' || req.body.playerType === 'reviewer') && req.body.playerId && req.body.previewGameId){
         const userDetails = await previewLogs.findOne({ 
-          where: { 'playerType': req.body.type, 'previewGameId': {[Op.eq]: req.body.gameId}, 'playerId':  {[Op.eq]: req.body.playerId}} ,
-          logging: true
+          where: { 'playerType': req.body.playerType, 'previewGameId': {[Op.eq]: req.body.previewGameId}, 'playerId':  {[Op.eq]: req.body.playerId}} ,
+          // logging: true
         });    
+        // console.log("userDetails", userDetails)
 
         if (userDetails === null) {
           // If user not in preview logs table, create a new entry
           const newUserLog = await previewLogs.create({
             playerId: req.body.playerId,
-            playerType: req.body.type,
-            previewGameId: req.body.gameId, 
+            playerType: req.body.playerType,
+            previewGameId: req.body.previewGameId, 
             ipAddress : req.connection.remoteAddress,
             userAgent : req.headers["user-agent"],
             deviceType :req.device.type,
@@ -37,33 +40,42 @@ const updatePreviewLogs = async (req, res) => {
         return res.status(400).json({ status: "Failure", error: "You are not authorized. Contact site Administrator" });
       }
     } else {
-    //  console.log()
-    // return res.status(200).json({"req.body.previewLogId": req.body.previewLogId});
    
       const getExistingRecords = await previewLogs.findByPk(req.body.previewLogId);
-      if(getExistingRecords.nevigatedSeq == req.body.nevigatedSeq ||
-      getExistingRecords.screenIdSeq == req.body.screenIdSeq ||
-      getExistingRecords.lastActiveBlockSeq == req.body.lastActiveBlockSeq ||
-      getExistingRecords.selectedOptions == req.body.selectedOptions ||
-      getExistingRecords.previewScore == req.body.previewScore ||
-      getExistingRecords.previewProfile == req.body.previewProfile ||
-      getExistingRecords.audioVolumeValue == req.body.audioVolumeValue || getExistingRecords.playerInputs == req.body.playerInputs)
+      // if(getExistingRecords.nevigatedSeq == req.body.nevigatedSeq ||
+      // getExistingRecords.screenIdSeq == req.body.screenIdSeq ||
+      // getExistingRecords.lastActiveBlockSeq == req.body.lastActiveBlockSeq ||
+      // getExistingRecords.selectedOptions == req.body.selectedOptions ||
+      // getExistingRecords.previewScore == req.body.previewScore ||
+      // getExistingRecords.previewProfile == req.body.previewProfile ||
+      // getExistingRecords.audioVolumeValue == req.body.audioVolumeValue || 
+      // getExistingRecords.playerInputs == req.body.playerInputs )
+      // {
+      //  console.log('$$$$$$$$Volume',req.body.audioVolumeValue);
+      if(getExistingRecords.nevigatedSeq == req.body.nevigatedSeq &&
+      getExistingRecords.screenIdSeq == req.body.screenIdSeq &&
+      getExistingRecords.lastActiveBlockSeq == req.body.lastActiveBlockSeq &&
+      getExistingRecords.selectedOptions == req.body.selectedOptions &&
+      getExistingRecords.previewScore == req.body.previewScore &&
+      getExistingRecords.previewProfile == req.body.previewProfile &&
+      // getExistingRecords.audioVolumeValue == req.body.audioVolumeValue && 
+      getExistingRecords.playerInputs == req.body.playerInputs )
       {
-        console.log("Looking for an update")
+        // console.log("$$$$$$$Mising to an update")
+        return res.status(200).json({ status: "Success", "Message": "No Updates"}); 
+      }
+      else{
+        // console.log("$$$$$$Looking for an update previewScore", req.body.previewScore)
         
         const userDetails = await previewLogs.update(req.body,  {where: {
           previewLogId: req.body.previewLogId,
         }});
-
+  
         if(userDetails.length > 0){
           return res.status(200).json({ status: "Success",  "Message": "Record Updated"}); 
         } else {
-          return res.status(400).json({ status: "Failure", error: 'Unable to update'}); 
+          return res.status(500).json({ status: "Failure", error: 'Unable to update'}); 
         }
-      }
-      else{
-        console.log("Mising to an update")
-        return res.status(200).json({ status: "Success", "Message": "No Updates"}); 
       }
     }
   } catch (error) {
@@ -74,8 +86,8 @@ const updatePreviewLogs = async (req, res) => {
 
 
 const updateBlockModifiedLog=async(req, res)=>{
-    // try{
-        console.log('playerLog 123 **',req.body.lastModifiedBlockSeq); //{Input: 8, Quest: 1}
+  //  try{
+        // console.log('playerLog 123 **',req.body); //{Input: 8, Quest: 1}
         if(req.body?.playerId)
         {
             const getBlockId =  await LmsBlocks.findOne({
@@ -86,13 +98,13 @@ const updateBlockModifiedLog=async(req, res)=>{
               }
             });
             const blockid = getBlockId.blockId;
-            console.log(blockid);
+            // console.log("blockid", blockid);
             const playerLog = await PreviewLogs.update({ lastModifiedBlockSeq: blockid, lastBlockModifiedDate: new Date(),ipAddress : req.connection.remoteAddress,
               userAgent : req.headers["user-agent"],
               deviceType :req.device.type,}, {where: {playerId:{[Op.eq]: req.body.playerId}, playerType:{[Op.eq]: req.body.playerType},previewGameId:{[Op.eq]: req.body.previewGameId} }, logging:true});
-            console.log('playerLog **',playerLog)   
+            return res.status(200).json({status: "Success", message: "Data Updated Successful ",data :playerLog});
         }
-    // }
+//     }
 // catch(error){
 //     return res.status(400).json({status: "Failure", error: error.message});
 // }

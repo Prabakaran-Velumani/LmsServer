@@ -808,6 +808,160 @@ const countByStage = async (req, res) => {
     });
   }
 };
+
+// const gameDuplicate = async (req, res) => {
+//   try {
+//     const id = req?.params?.id;
+
+//     const getAllgame = await LmsGame.findAll({
+//       where: {
+//         gameExtensionId: id,
+//       },
+//       order: [["gameId", "ASC"]],
+//     });
+
+//     let setExtenstion = [];
+//     const processedGames = await Promise.all(
+//       getAllgame.map(async (game, index) => {
+//         const gameToClone = await LmsGame.findByPk(game.gameId);
+//         let taketile = gameToClone?.gameTitle?.split("_");
+//         const currentDate = new Date();
+//         const formattedDate = `${currentDate.getDate()}-${
+//           currentDate.getMonth() + 1
+//         }-${currentDate.getFullYear()}`;
+//         const formattedTime = `${currentDate.getHours()}.${currentDate.getMinutes()}.${currentDate.getSeconds()}`;
+
+//         // Create newTitle with current date and time
+//         let newTitle = `${taketile[0]}_copied(${formattedDate} ${formattedTime})`;
+//         const clonedGame = LmsGame.build({
+//           ...gameToClone.get(), // Using spread syntax to copy all fields
+//           gameId: null, // Set id to null to create a new record
+//           // Modify specific fields here
+//           gameTitle: newTitle, // Change 'someField' to the new value
+//           gameGameStage: "Creation",
+//           gameExtensionId: null,
+//           gameDuplicated: "YES",
+//           gameStageDate: Date.now(),
+//           gameCreatedDatetime: Date.now(),
+//           gameIpAddress: req.connection.remoteAddress,
+//           gameUserAgent: req.headers["user-agent"],
+//         });
+//         await clonedGame.save();
+
+//         if (clonedGame && index === 0) {
+//           setExtenstion.push(clonedGame.gameId);
+//         }
+//         //  return false;
+//         const gameup = await LmsGame.update(
+//           { gameExtensionId: setExtenstion[0] },
+//           {
+//             where: {
+//               gameId: clonedGame.gameId,
+//             },
+//           }
+//         );
+//         // console.log("setExtenstion", setExtenstion[0]);
+//         // console.log("clonedGame.gameId", gameup, index);
+
+//         if (clonedGame) {
+//           const blocksToClone = await LmsBlocks.findAll({
+//             where: {
+//               blockGameId: id,
+//               blockQuestNo: clonedGame.gameQuestNo, // Replace 'yourValue' with the actual value you're searching for
+//             },
+//           });
+
+//           if (blocksToClone) {
+//             for (const block of blocksToClone) {
+//               // Perform your actions for each block here
+//               // For example, clone the block or perform any other operation
+//               const clonedBlock = await LmsBlocks.create({
+//                 ...block.get(),
+//                 blockId: null,
+//                 blockGameId: setExtenstion[0],
+//               });
+//               await clonedBlock.save();
+//               if (clonedBlock) {
+//                 const QuestionsOptionToClone = await lmsQuestionOptions.findAll(
+//                   {
+//                     where: {
+//                       qpQuestionId: block.blockId,
+//                     },
+//                   }
+//                 );
+
+//                 if (QuestionsOptionToClone) {
+//                   for (const option of QuestionsOptionToClone) {
+//                     const clonedOption = await lmsQuestionOptions.create({
+//                       ...option.get(),
+//                       qpOptionId: null,
+//                       qpQuestionId: clonedBlock.blockId,
+//                       qpGameId: setExtenstion[0],
+//                     });
+//                     await clonedOption.save();
+//                   }
+//                 }
+//               }
+//             }
+//           } else {
+//             // const result = await LmsGame.destroy({
+//             //   where: {
+//             //     gameId: clonedGame.gameId,
+//             //   },
+//             // });
+//             // res.status(400).json({ message: 'Stroy Not In the Game .', data: clonedGame.gameId });
+//           }
+//           if (index === 0) {
+//             const relfectionToClone = await ReflectionQuestion.findAll({
+//               where: {
+//                 refGameId: id, // Replace 'yourValue' with the actual value you're searching for
+//               },
+//             });
+
+//             if (relfectionToClone) {
+//               for (const ref of relfectionToClone) {
+//                 const clonedRelfection = await ReflectionQuestion.create({
+//                   ...ref.get(),
+//                   refId: null, // Set id to null to create a new record
+//                   refGameId: setExtenstion[0],
+//                 });
+//               }
+//             }
+//           }
+//         } else {
+//           return res
+//             .status(400)
+//             .json({ status: "Failure", message: "Game Not Duplicated ." });
+//         }
+//       })
+//     );
+//     let sendData = [];
+//     if (setExtenstion.length > 0) {
+//       // Check if setExtenstion is not empty
+//       sendData = await LmsGame.findAll({
+//         where: {
+//           gameId: setExtenstion[0],
+//         },
+//       });
+//       return res.status(200).json({
+//         status: "Success",
+//         message: "Game Duplicated successfully.",
+//         data: sendData,
+//       });
+//     }
+//     return res.status(200).json({
+//       status: "Success",
+//       message: "Game Duplicated successfully.",
+//       data: sendData,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       status: "Failure",
+//       message: "Internal Server Error",
+//       err: error.message,
+//     });
+//   }
+// };
 const gameDuplicate = async (req, res) => {
   try {
     const id = req?.params?.id;
@@ -961,6 +1115,7 @@ const gameDuplicate = async (req, res) => {
     });
   }
 };
+
 const gameLaunch = async (req, res) => {
   try {
     const id = req?.params?.id;
@@ -3189,7 +3344,161 @@ const sentFeedbackMail = async (req, res) => {
   }
 };
 const QuestDeletion = async (req, res) => {
+  try {
+    const data = req?.body;
+    const id = req?.params?.id;
+/******************Game Deletion*********************** */
+const checkExtenid = await LmsGame.findOne({
+  where: {
+    gameExtensionId: data.exid
+  },
+  order: [["gameId", "ASC"]] // Correcting the order syntax
+});
+const checkQuestCount = await LmsGame.count({
+  where: {
+    gameExtensionId: data.exid
+  },
+  
+});
+let testdata = [];
+testdata.push(checkExtenid);
+testdata.push(checkExtenid && parseInt(data.exid) === checkExtenid.gameId);
+
+if (checkExtenid && parseInt(data.exid) === checkExtenid.gameId) {
+  if(checkQuestCount>1){
+
+    
+  const getlastId = await LmsGame.findOne({
+    order: [["gameId", "DESC"]]
+  });
+
+  const incLastId = getlastId ? getlastId.gameId + 1 : 1; // Handle the case when no records exist
+
+  testdata.push(incLastId);
+
+  // Update the record with the incremented gameId and reset gameExtensionId and gameQuest
+  await LmsGame.update(
+    { gameId: incLastId, gameExtensionId: 0, gameQuest:null },
+    { where: { gameId: data.exid } }
+  );
+
+  // Delete the record with the incremented gameId
+
+
+
+  
+
+  // Get the record with the original gameExtensionId
+  const getFristId = await LmsGame.findOne({
+    where: { gameExtensionId: data.exid },
+    order: [["gameId", "ASC"]]
+  });
+
+  if (getFristId) {
+    testdata.push(getFristId.gameId);
+
+    // Update the record with the original gameId
+    await LmsGame.update(
+      { gameId: data.exid },
+      { where: { gameId: getFristId.gameId } }
+    );
+  
+    await LmsBlocks.update(
+      { blockGameId: data.exid },
+      { where: { blockGameId: incLastId } }
+    );
+    await lmsQuestionOptions.update(
+      { qpGameId: data.exid },
+      { where: { qpGameId: incLastId } }
+    );
+    
+    await LmsGame.destroy({
+      where: { gameId: incLastId }
+    });
+  
+  }
+
+  }
+  }
+
+else {
+  
+  await LmsGame.destroy({
+    where: {
+      gameExtensionId: data.exid,
+      gameQuestNo: data.quest
+    }
+  });
+}
+
+/****************************************************** */
+   
+ /******************Block Deletion*********************** */
+ BlcokList = await LmsBlocks.destroy({
+  where: {
+    blockGameId: data.exid,
+    blockQuestNo: data.quest,
+  },
+});
+ /******************QuestionOption Deletion*********************** */
+
+ const questiondat = await lmsQuestionOptions.destroy({
+  where: {
+    qpGameId: data.exid,
+    qpQuestNo: data.quest,
+  },
+});
+ 
+
+
+
+ 
+    await LmsGame.update(
+      { gameQuestNo: Sequelize.literal('gameQuestNo - 1') },
+      {
+        where: {
+          gameExtensionId: data.exid,
+         
+        },
+      }
+    );
+
+    await LmsBlocks.update(
+      { blockQuestNo: Sequelize.literal('blockQuestNo - 1'),
+      blockPrimarySequence: Sequelize.literal(`blockPrimarySequence - 1`),
+      blockDragSequence:Sequelize.literal('blockDragSequence - 1')},
+      {
+        where: {
+          blockGameId: data.exid,
+          blockQuestNo: { [Op.gt]: data.quest },
+        },
+      }
+    );
+
+    await lmsQuestionOptions.update(
+      { qpQuestNo: Sequelize.literal('qpQuestNo - 1'),
+      qpSequence:Sequelize.literal('qpSequence - 1')
+     },
+      {
+        where: {
+          qpGameId: data.exid,
+          qpQuestNo: { [Op.gt]: data.quest },
+        },
+      }
+    );
+
+
+     
+    return res.status(200).json({
+      status: "Success",
+      message: "Quest Deleted",
+      data:testdata
+    });
+  } catch (error) {
+    return res.status(500).json({ status: "Failure", error: error.message });
+  }
 };
+
 const getCompletionScreen = async (req, res) => {
   try {
     const id = req?.params?.id;
@@ -3273,6 +3582,234 @@ const getCompletionScreen = async (req, res) => {
   }
 };
 const getStoryValidtion = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ status: "Failure", message: "Bad Request" });
+    }
+
+    const blockCounts = await LmsBlocks.findAll({
+      attributes: ['blockQuestNo', [Sequelize.fn('COUNT', Sequelize.col('*')), 'count']],
+      where: {
+          blockGameId: id,
+          blockDeleteStatus: 'No' // Assuming 'No' is the desired value for blockDeleteStatus
+      },
+      group: ['blockQuestNo']
+  });
+  
+    const gameData = await LmsGame.findOne({
+      where: { gameId: id },
+      include: [
+        {
+          model: LmsBlocks,
+          attributes: [
+            "blockGameId",
+            "blockId",
+            "blockText",
+            "blockDragSequence",
+            "blockCharacterposesId",
+            "blockQuestNo",
+            "blockChoosen",
+            "blockPrimarySequence",
+            "blockLeadTo",
+            "blockRoll",
+          ],
+          where: {
+            blockDeleteStatus: "NO",
+          },
+        },
+        {
+          model: lmsQuestionOptions,
+          attributes: [
+            "qpGameId",
+            "qpQuestionId",
+            "qpOptionId",
+            "qpOptionText",
+            "qpTag",
+            "qpScore",
+            "qpEmotion",
+            "qpQuestNo",
+            "qpSequence",
+            "qpOptions",
+            "qpNextOption",
+          ],
+          where: {
+            qpDeleteStatus: "NO",
+          },
+        },
+      ],
+    });
+
+    if (!gameData) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    if (gameData.lmsblocks && gameData.lmsblocks.length > 0) {
+      const blockFields = ["blockText"];
+      const AnimateFields = ["blockCharacterposesId"]; 
+      const Navigatar = ["blockLeadTo"];
+    
+      
+      for (const block of gameData.lmsblocks) {
+                
+        for (const field of blockFields) {
+          const blockDragSequence_1 = block.blockDragSequence;
+          const QuestNo = block.blockQuestNo;
+          const BlockChoose = block.blockChoosen;
+          if (!block[field]) {
+            return res.status(400).json({
+              status: "Failure",
+            
+              // message: `Quest No ${QuestNo} ${BlockChoose} Sequence ${blockDragSequence_1} is empty.`, pavi
+              message: `Quest No ${QuestNo} Sequence ${blockDragSequence_1} ${BlockChoose} is Empty.`,
+            });
+          }
+        }
+    
+        for (const field of AnimateFields) {
+          const blockDragSequence = block.blockPrimarySequence;
+          const QuestNo = block.blockQuestNo;
+          const BlockChoose = block.blockChoosen;
+          const ids = block.blockId;
+          const blockRoll =block.blockRoll;
+          
+          // console.log('LokieblockRoll',blockRoll);
+          if ((blockRoll===99999||blockRoll==='Narrator') && !block[field] && BlockChoose!=='Note') {
+              if (!block[field] && BlockChoose!='Note') {
+            return res.status(400).json({
+              status: "Failure",
+              // pavi
+              message: `Quest No ${QuestNo} Animate Sequence ${blockDragSequence} is Empty`,
+            });
+          }
+          }
+        
+        }
+
+        for (const field of Navigatar) {
+          const blockDragSequence = block.blockPrimarySequence;
+          const QuestNo = block.blockQuestNo;
+          const BlockChoose = block.blockChoosen;
+          const ids = block.blockId;
+          
+          if (!block[field] && BlockChoose!='Interaction') {
+            return res.status(400).json({
+              status: "Failure",
+          
+              // message: `Quest No ${QuestNo} Navigate Sequence ${blockDragSequence} is empty..`, pavi
+              message: `Quest No ${QuestNo} Sequence ${blockDragSequence} Navigate  is Empty`,
+            });
+          }
+        }
+      }
+    } else {
+      return res.status(400).json({
+        status: "Failure",
+        message: "Please Fill the Empty Fields",
+      });
+    }
+    
+    
+
+    const uniqueQuestionIds = [
+      ...new Set(
+        gameData.lmsquestionsoptions.map((option) => option.qpQuestionId)
+      ),
+    ];
+
+    for (const questionIdToCheck of uniqueQuestionIds) {
+      const optionsForQuestionId = gameData.lmsquestionsoptions.filter(
+        (option) => option.qpQuestionId === questionIdToCheck
+      );
+
+      for (const option of optionsForQuestionId) {
+
+        if (!option.qpOptionText) {
+          return res.status(400).json({
+            status: "Failure",
+            // message: `Quest No ${option.qpQuestNo} Option ${option.qpOptions} Sequence ${option.qpSequence} is Empty`,  
+              // pavi
+            message: `Quest Nos ${option.qpQuestNo}  Sequence ${option.qpSequence} Option ${option.qpOptionText} is Empty`,
+          });
+        }
+        if (!option.qpEmotion) {
+          return res.status(400).json({
+            status: "Failure",
+          // pavi
+            // message: `Quest No ${option.qpQuestNo} Option ${option.qpOptions} Animate Sequence ${option.qpSequence} is Empty`,
+
+           message: `Quest No ${option.qpQuestNo} Sequence ${option.qpSequence}  Select the Animate  ${option.qpOptions} is Empty`,
+          });
+        }
+
+        if (!option.qpNextOption) {
+          return res.status(400).json({
+            status: "Failure",
+            message: `Quest No ${option.qpQuestNo} Option ${option.qpOptions} Navigate Sequence ${option.qpSequence} is Empty`,
+          });
+        }
+      }
+
+      const hasTrueTag = optionsForQuestionId.some(
+        (option) => option.qpTag === "true"
+      );
+
+      if (!hasTrueTag) {
+        return res.status(400).json({
+          status: "Failure",
+          // pavi
+          // message: `At least one option must be checked on this sequence of Quest ${optionsForQuestionId[0].qpQuestNo} Sequence ${optionsForQuestionId[0].qpSequence}`,
+          message: `Quest ${optionsForQuestionId[0].qpQuestNo} At least one option must be checked on this sequence ${optionsForQuestionId[0].qpSequence}`,
+        });
+      }
+
+      for (const option of optionsForQuestionId) {
+        if (option.qpTag === "true" && option.qpScore === "") {
+          return res.status(400).json({
+            status: "Failure",
+            message: `Score is required for Selected Option of Quest ${option.qpQuestNo} Sequence ${option.qpSequence}`,
+          });
+        }
+      }
+      for (const block of gameData.lmsblocks) {
+        const blockQuestNo = block.blockQuestNo;
+        const rows = gameData.lmsblocks.filter(b => b.blockQuestNo === blockQuestNo);
+        
+            let success = false;
+            for (let i = 1; i <= blockCounts.length; i++) {
+            
+                if (rows.some(row => row.blockChoosen === 'Interaction')) {
+                    success = true;
+                    break; 
+                }
+            }
+    
+            if (!success) {
+                return res.status(400).json({
+                    status: "Failure",
+                    message: `No Interaction for Quest No ${blockQuestNo}`,
+                });
+            }
+    }
+    }
+      
+    res.status(200).json({
+      status: "Success",
+      message: "Data Retrieved Successfully",
+      data: gameData,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message:
+        "An error occurred while processing the request. Check the server logs for more details.",
+      err: error,
+    });
+  }
 };
 const getTotalMinofWords = async (req, res) => {
   try {
@@ -3362,54 +3899,6 @@ const getTotalMinofWords = async (req, res) => {
     });
   }
 };
-
-// const ComplitionUpdate = async (req, res) => {
-//   try {
-//     const data = req?.body;
-//     const id = req?.params?.id;
-
-//     // Check if data is provided
-//     if (!data || Object.keys(data).length === 0) {
-//       return res
-//         .status(400)
-//         .json({ status: "Failure", message: "No data provided for update." });
-//     }
-
-//     // Iterate over keys and update the lmsGame table
-//     for (const key in data) {
-//       if (Object.prototype.hasOwnProperty.call(data, key)) {
-//         const value = data[key];
-//         value.gameTotalScore = value.gameTotalScore.maxScore;
-//         const { gameQuestNo, ...updateValues } = value;
-//         const updateResult = await LmsGame.update(updateValues, {
-//           where: {
-//             gameExtensionId: id,
-//             gameQuestNo: value.gameQuestNo,
-//           },
-//         });
-//         if (!updateResult || updateResult[0] === 0) {
-//           return res.status(404).json({
-//             status: "Failure",
-//             message: `Failed to update ${key} with value ${value}.`,
-//           });
-//         }
-//       }
-//     }
-
-//     // Send success response
-//     res
-//       .status(200)
-//       .json({ status: "Success", message: "Data updated successfully." });
-//   } catch (error) {
-//     // Handle any errors that may occur during the update
-//     console.error("Error during update:", error);
-//     res.status(500).json({
-//       status: "Failure",
-//       message: "Internal Server Error",
-//       error: error.message,
-//     });
-//   }
-// };
 
 const ComplitionUpdate = async (req, res) => {
   // console.log('requestCompli--',req?.body)
@@ -3752,7 +4241,7 @@ const getGamePreviewCollection = async (req, res) => {
           as: "gameQuest",
         },
       ],
-      logging: true,
+      // logging: true,
     });
     let completionScreenObject = {};
 

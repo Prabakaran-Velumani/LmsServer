@@ -30,7 +30,7 @@ const PreviewLogs = sequelize.define('PreviewLogs', {
            allowNull: true
          },
         lastActiveBlockSeq: {
-           type: DataTypes.STRING(10),
+           type: DataTypes.JSON,
            allowNull: true
          },
          selectedOptions: {
@@ -74,6 +74,7 @@ const PreviewLogs = sequelize.define('PreviewLogs', {
           type: DataTypes.STRING(16),
           allowNull: true,
         },
+        
          createdAt: {
            allowNull: false,
            type: DataTypes.DATE
@@ -91,6 +92,6 @@ const PreviewLogs = sequelize.define('PreviewLogs', {
 });
 
   PreviewLogs.associate = (models) => {
-    PreviewLogs.belongsTo(LmsGame, { foreignKey: 'previewGameId', as: 'game' });
+    PreviewLogs.belongsTo(LmsGame, { foreignKey: 'previewGameId', as: 'game',onUpdate: 'CASCADE', onDelete: 'CASCADE'});    
   };
 module.exports = PreviewLogs;
