@@ -4129,6 +4129,81 @@ const getGameCollections = async (req, res) => {
         },
       });
     }
+
+    let completionScreenObject = {};
+
+    const getCompletionscreens = await LmsGame.findAndCountAll({
+      where: {
+        gameExtensionId: await reviewerGame.gameId,
+        gameDeleteStatus: "NO",
+      },
+      order: ["gameId"],
+    });
+    if (getCompletionscreens) {
+      for (let [index, result] of getCompletionscreens.rows.entries()) {
+        const getTotalscore = await lmsQuestionOptions.findAll({
+          attributes: [
+            [
+              Sequelize.fn(
+                "SUM",
+                Sequelize.literal("lmsquestionsoption.qpScore")
+              ),
+              "maxScore",
+            ],
+          ],
+          where: {
+            qpGameId: await reviewerGame.gameId,
+            qpQuestNo: result.gameQuestNo,
+            qpDeleteStatus: "No",
+            qpTag: "true",
+          },
+          group: ["qpQuestNo"], // Add GROUP BY clause
+        });
+
+        let TotalScore = getTotalscore; // Corrected access to alias name
+
+        // Loop through the getTotalscore result and extract maxScore values
+
+        let value = {
+          gameId: result.gameId,
+          gameQuestNo: result.gameQuestNo,
+          gameTotalScore: TotalScore ?? null,
+          gameIsSetMinPassScore: result.gameIsSetMinPassScore ?? "false",
+          gameMinScore: result.gameMinScore,
+          gameIsSetDistinctionScore:
+            result.gameIsSetDistinctionScore ?? "false",
+          gameDistinctionScore: result.gameDistinctionScore,
+          gameIsSetSkillWiseScore: result.gameIsSetSkillWiseScore ?? "false",
+          gameIsSetBadge: result.gameIsSetBadge,
+          gameBadge: result.gameBadge,
+          gameBadgeName: result.gameBadgeName,
+          gameIsSetCriteriaForBadge:
+            result.gameIsSetCriteriaForBadge ?? "false",
+          gameAwardBadgeScore: result.gameAwardBadgeScore,
+          gameScreenTitle: result.gameScreenTitle
+            ? result.gameScreenTitle
+            : "Quest Complete",
+          gameCompletedCongratsMessage: result.gameCompletedCongratsMessage
+            ? result.gameCompletedCongratsMessage
+            : "Congratulations! you have Completed....",
+          gameIsSetCongratsScoreWiseMessage:
+            result.gameIsSetCongratsScoreWiseMessage ?? "false",
+          gameMinimumScoreCongratsMessage:
+            result.gameMinimumScoreCongratsMessage,
+          gameaboveMinimumScoreCongratsMessage:
+            result.gameaboveMinimumScoreCongratsMessage ?? "",
+          gameLessthanDistinctionScoreCongratsMessage:
+            result.gameLessthanDistinctionScoreCongratsMessage,
+          gameAboveDistinctionScoreCongratsMessage:
+            result.gameAboveDistinctionScoreCongratsMessage ?? "",
+        };
+
+        completionScreenObject[index] = value;
+      }
+    }
+    
+
+
     /**returns Player characters */
     const directoryPath = path.join(process.cwd(), "uploads", "player");
     const files = await getFilesInDirectory(directoryPath);
@@ -4145,6 +4220,7 @@ const getGameCollections = async (req, res) => {
         npcUrl: npcUrl?.gasAssetImage ?? "",
         badges: gameQuestBadgesUrls,
       },
+      data : completionScreenObject,
     });
   } catch (error) {
     return res.status(400).json({ error: error.message });
@@ -4228,6 +4304,7 @@ const getGamePreviewCollection = async (req, res) => {
         {
           model: lmsQuestionOptions,
           as: "lmsquestionsoptions",
+          required: false, // Makes the join optional
           attributes: {
             exclude: ["qpIpAddress", "qpUserAgent", "qpDeviceType"],
           },
